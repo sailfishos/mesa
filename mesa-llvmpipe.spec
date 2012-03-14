@@ -5,16 +5,16 @@
 # >> macros
 # << macros
 
-Name:       mesa
-Summary:    Mesa graphics libraries
+Name:       mesa-llvmpipe
+Summary:    Mesa graphics libraries built for LLVMpipe
 Version:    8.0.1
 Release:    0
 Group:      System/Libraries
 License:    MIT
 URL:        http://www.mesa3d.org/beta
 Source0:    MesaLib-%{version}.tar.bz2
-Source1:    mesa-rpmlintrc
-Source100:  mesa.yaml
+Source1:    mesa-llvmpipe-rpmlintrc
+Source100:  mesa-llvmpipe.yaml
 Patch0:     mesa-7.11-git-notimestamping.patch
 BuildRequires:  pkgconfig(glproto)
 BuildRequires:  pkgconfig(dri2proto) >= 1.1
@@ -116,7 +116,7 @@ Mesa libEGL runtime compatibility library.
 Summary:    Mesa libglapi development package
 Group:      System/Libraries
 Requires:   %{name} = %{version}-%{release}
-Requires:   mesa-libglapi = %{version}-%{release}
+Requires:   mesa-llvmpipe-libglapi = %{version}-%{release}
 Provides:   libglapi-devel
 
 %description libglapi-devel
@@ -126,7 +126,7 @@ Mesa libglapi development package.
 Summary:    Mesa libGLESv1 development package
 Group:      Development/Libraries
 Requires:   %{name} = %{version}-%{release}
-Requires:   mesa-libGLESv1 = %{version}-%{release}
+Requires:   mesa-llvmpipe-libGLESv1 = %{version}-%{release}
 Provides:   libGLESv1-devel
 
 %description libGLESv1-devel
@@ -136,9 +136,9 @@ Mesa libGLESv1 development packages
 Summary:    Mesa libGLESv2 development package
 Group:      Development/Libraries
 Requires:   %{name} = %{version}-%{release}
-Requires:   mesa-libGLESv2 = %{version}-%{release}
+Requires:   mesa-llvmpipe-libGLESv2 = %{version}-%{release}
 Provides:   libGLESv2-devel
-Obsoletes:   mesa-libGLESv2-compat
+Obsoletes:   mesa-llvmpipe-libGLESv2-compat
 
 %description libGLESv2-devel
 Mesa libGLESv2 development packages
@@ -147,9 +147,9 @@ Mesa libGLESv2 development packages
 Summary:    Mesa libEGL development package
 Group:      Development/Libraries
 Requires:   %{name} = %{version}-%{release}
-Requires:   mesa-libEGL = %{version}-%{release}
+Requires:   mesa-llvmpipe-libEGL = %{version}-%{release}
 Provides:   libEGL-devel
-Obsoletes:   mesa-libEGL-compat
+Obsoletes:   mesa-llvmpipe-libEGL-compat
 
 %description libEGL-devel
 Mesa libEGL development packages
@@ -169,7 +169,7 @@ Mesa libGL runtime library.
 Summary:    Mesa libGL development package
 Group:      Development/Libraries
 Requires:   %{name} = %{version}-%{release}
-Requires:   mesa-libGL = %{version}-%{release}
+Requires:   mesa-llvmpipe-libGL = %{version}-%{release}
 Requires:   libX11-devel
 Provides:   libGL-devel
 
@@ -180,7 +180,7 @@ Mesa libGL development packages
 Summary:    Mesa libGLU development package
 Group:      Development/Libraries
 Requires:   %{name} = %{version}-%{release}
-Requires:   mesa-libGLU = %{version}-%{release}
+Requires:   mesa-llvmpipe-libGLU = %{version}-%{release}
 Requires:   libGL-devel
 Provides:   libGLU-devel
 
@@ -209,7 +209,7 @@ Mesa-based DRI driver development files.
 Summary:    Mesa-based DRI drivers
 Group:      Graphics/Display and Graphics Adaptation
 Requires:   %{name} = %{version}-%{release}
-Provides:   mesa-dri-drivers = %{version}-%{release}
+Provides:   mesa-llvmpipe-dri-drivers = %{version}-%{release}
 
 %description dri-swrast-driver
 Mesa-based swrast DRI driver.

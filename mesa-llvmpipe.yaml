@@ -1,5 +1,5 @@
-Name: mesa
-Summary: Mesa graphics libraries
+Name: mesa-llvmpipe
+Summary: Mesa graphics libraries built for LLVMpipe
 Version: 8.0.1
 Release: 0
 Group: System/Libraries
@@ -7,7 +7,7 @@ License: MIT
 URL: http://www.mesa3d.org/beta
 Sources:
     - MesaLib-%{version}.tar.bz2
-    - mesa-rpmlintrc
+    - mesa-llvmpipe-rpmlintrc
 Patches:
     - mesa-7.11-git-notimestamping.patch
 
@@ -111,7 +111,7 @@ SubPackages:
       Provides:
           - libglapi-devel
       Requires:
-          - mesa-libglapi = %{version}-%{release}
+          - mesa-llvmpipe-libglapi = %{version}-%{release}
 
     - Name: libGLESv1-devel
       Summary: Mesa libGLESv1 development package
@@ -120,7 +120,7 @@ SubPackages:
       Provides:
           - libGLESv1-devel
       Requires:
-          - mesa-libGLESv1 = %{version}-%{release}
+          - mesa-llvmpipe-libGLESv1 = %{version}-%{release}
 
     - Name: libGLESv2-devel
       Summary: Mesa libGLESv2 development package
@@ -129,9 +129,9 @@ SubPackages:
       Provides:
           - libGLESv2-devel
       Requires:
-          - mesa-libGLESv2 = %{version}-%{release}
+          - mesa-llvmpipe-libGLESv2 = %{version}-%{release}
       Obsoletes:
-          - mesa-libGLESv2-compat
+          - mesa-llvmpipe-libGLESv2-compat
 
     - Name: libEGL-devel
       Summary: Mesa libEGL development package
@@ -140,9 +140,9 @@ SubPackages:
       Provides:
           - libEGL-devel
       Requires:
-          - mesa-libEGL = %{version}-%{release}
+          - mesa-llvmpipe-libEGL = %{version}-%{release}
       Obsoletes:
-          - mesa-libEGL-compat
+          - mesa-llvmpipe-libEGL-compat
 
     - Name: libGL
       Summary: Mesa libGL runtime libraries and DRI drivers
@@ -156,7 +156,7 @@ SubPackages:
       Group: Development/Libraries
       Description: Mesa libGL development packages
       Requires:
-          - mesa-libGL = %{version}-%{release}
+          - mesa-llvmpipe-libGL = %{version}-%{release}
           - libX11-devel
       Provides:
           - libGL-devel
@@ -166,7 +166,7 @@ SubPackages:
       Group: Development/Libraries
       Description: Mesa libGLU development packages
       Requires:
-          - mesa-libGLU = %{version}-%{release}
+          - mesa-llvmpipe-libGLU = %{version}-%{release}
           - libGL-devel
       Provides:
           - libGLU-devel
@@ -186,4 +186,4 @@ SubPackages:
       Group: Graphics/Display and Graphics Adaptation
       Description: Mesa-based swrast DRI driver.
       Provides:
-          - mesa-dri-drivers = %{version}-%{release}
+          - mesa-llvmpipe-dri-drivers = %{version}-%{release}

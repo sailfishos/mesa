@@ -1,4 +1,8 @@
-* Thu Feb 16 2012 Carsten Munk <carsten@merprojet.org> - 8.0
+* Wed Mar 14 2012 Carsten Munk <carsten@merproject.org> - 8.0
+- Fix changelog
+- Rename to mesa-llvmpipe
+
+* Thu Feb 16 2012 Carsten Munk <carsten@merproject.org> - 8.0
 - Upgrade to Mesa 8.0.1, switch to llvmpipe as default (MER#12)
 
 * Fri Oct 14 2011 Carsten Munk <carsten@maemo.org> - 7.11
