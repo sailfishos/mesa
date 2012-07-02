@@ -1,12 +1,12 @@
 Name: mesa-llvmpipe
 Summary: Mesa graphics libraries built for LLVMpipe
-Version: 8.0.1
+Version: 8.0.3
 Release: 0
 Group: System/Libraries
 License: MIT
-URL: http://www.mesa3d.org/beta
+URL: http://www.mesa3d.org/
 Sources:
-    - MesaLib-%{version}.tar.bz2
+    - ftp://ftp.freedesktop.org/pub/mesa/%{version}/MesaLib-%{version}.tar.bz2
     - mesa-llvmpipe-rpmlintrc
 Patches:
     - mesa-7.11-git-notimestamping.patch
