@@ -1,3 +1,6 @@
+* Thu Nov 08 2012 Carsten Munk <carsten.munk@jollamobile> - 8.0.3
+- Upgrade to 8.0.5, add patches for LLVM 3.1 and Wayland 0.85
+
 * Mon Jul 02 2012 Marko Saukko <sage@merproject.org> - 8.0.3
 - Fixes MER#356: update mesa to 8.0.3; obsolete URL, etc.
 

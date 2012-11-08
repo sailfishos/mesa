@@ -1,0 +1,25 @@
+From afc5047613d9bf25884053beb6791e891e703265 Mon Sep 17 00:00:00 2001
+From: Benjamin Franzke <benjaminfranzke@googlemail.com>
+Date: Tue, 27 Mar 2012 18:50:30 +0200
+Subject: [PATCH] st/egl: Also remove wl_buffer_damage in wayland backend
+
+As commit 03eca9d92d407c71a59ff8a43067759769da0ae4 does for egl_dri2.
+---
+ .../state_trackers/egl/wayland/native_wayland.c    |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/src/gallium/state_trackers/egl/wayland/native_wayland.c b/src/gallium/state_trackers/egl/wayland/native_wayland.c
+index dfaa50f..a7f9cb7 100644
+--- a/src/gallium/state_trackers/egl/wayland/native_wayland.c
++++ b/src/gallium/state_trackers/egl/wayland/native_wayland.c
+@@ -348,7 +348,6 @@ wayland_surface_present(struct native_surface *nsurf,
+ 
+    if (surface->type == WL_WINDOW_SURFACE) {
+       resource_surface_get_size(surface->rsurf, &width, &height);
+-      wl_buffer_damage(surface->buffer[WL_BUFFER_FRONT], 0, 0, width, height);
+       wl_surface_damage(surface->win->surface, 0, 0, width, height);
+    }
+ 
+-- 
+1.7.9
+
