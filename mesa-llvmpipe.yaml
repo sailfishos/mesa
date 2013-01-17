@@ -65,6 +65,7 @@ ConfigOptions:
     - --enable-glx-tls
     - --enable-glx=yes
     - --enable-dri
+    - --enable-shared-glapi=yes
 Builder: make
 SubPackages:
     - Name: libglapi

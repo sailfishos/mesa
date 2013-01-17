@@ -282,7 +282,8 @@ Mesa libwayland-egl runtime libraries
     --with-egl-platforms=x11,fbdev,wayland \
     --enable-glx-tls \
     --enable-glx=yes \
-    --enable-dri
+    --enable-dri \
+    --enable-shared-glapi=yes
 
 make %{?jobs:-j%jobs}
 
@@ -351,7 +352,6 @@ popd
 %defattr(-,root,root,-)
 # >> files
 %{_libdir}/egl/egl_gallium.so
-%{_libdir}/egl/st_GL.so
 # << files
 
 %files libglapi
