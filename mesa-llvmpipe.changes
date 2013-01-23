@@ -1,4 +1,8 @@
-* Thu Jan 17 2013 Carsten Munk <carsten.munk.jollamobile.com> - 8.0.3
+* Tue Jan 22 2013 Carsten Munk <carsten.munk@jollamobile.com> - 9.0.1
+- Upgrade to 9.0.1
+- Add patch to fix wayland-shm roundtrip
+
+* Thu Jan 17 2013 Carsten Munk <carsten.munk@jollamobile.com> - 8.0.3
 - Fix e-mail in changelog
 - Utilize shared glapi, caused problems without.
 

@@ -9,7 +9,7 @@ Name:       mesa-llvmpipe
 # << macros
 
 Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    8.0.5
+Version:    9.0.1
 Release:    0
 Group:      System/Libraries
 License:    MIT
@@ -18,11 +18,7 @@ Source0:    ftp://ftp.freedesktop.org/pub/mesa/%{version}/MesaLib-%{version}.tar
 Source1:    mesa-llvmpipe-rpmlintrc
 Source100:  mesa-llvmpipe.yaml
 Patch0:     mesa-7.11-git-notimestamping.patch
-Patch1:     0001-wayland-drm-Implement-wl_buffer.damage-in-old-versio.patch
-Patch2:     0001-st-egl-Also-remove-wl_buffer_damage-in-wayland-backe.patch
-Patch3:     0001-st-egl-Update-to-the-new-wl_shm_pool-interface.patch
-Patch4:     0001-Stop-using-wl-buffer-damage.patch
-Patch5:     mesa-8.0.3-llvm3.1.patch
+Patch1:     fix-shm-roundtrip.patch
 BuildRequires:  pkgconfig(glproto)
 BuildRequires:  pkgconfig(dri2proto) >= 1.1
 BuildRequires:  pkgconfig(xproto)
@@ -183,27 +179,6 @@ Provides:   libGL-devel
 %description libGL-devel
 Mesa libGL development packages
 
-%package libGLU-devel
-Summary:    Mesa libGLU development package
-Group:      Development/Libraries
-Requires:   %{name} = %{version}-%{release}
-Requires:   mesa-llvmpipe-libGLU = %{version}-%{release}
-Requires:   libGL-devel
-Provides:   libGLU-devel
-
-%description libGLU-devel
-Mesa libGLU development packages
-
-%package libGLU
-Summary:    Mesa libGLU runtime library
-Group:      System/Libraries
-Requires:   %{name} = %{version}-%{release}
-Requires(post): /sbin/ldconfig
-Requires(postun): /sbin/ldconfig
-
-%description libGLU
-Mesa libGLU runtime libraries
-
 %package dri-drivers-devel
 Summary:    Mesa-based DRI development files
 Group:      Development/Libraries
@@ -216,6 +191,8 @@ Mesa-based DRI driver development files.
 Summary:    Mesa-based DRI drivers
 Group:      Graphics/Display and Graphics Adaptation
 Requires:   %{name} = %{version}-%{release}
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
 Provides:   mesa-llvmpipe-dri-drivers = %{version}-%{release}
 
 %description dri-swrast-driver
@@ -247,16 +224,8 @@ Mesa libwayland-egl runtime libraries
 
 # mesa-7.11-git-notimestamping.patch
 %patch0 -p1
-# 0001-wayland-drm-Implement-wl_buffer.damage-in-old-versio.patch
+# fix-shm-roundtrip.patch
 %patch1 -p1
-# 0001-st-egl-Also-remove-wl_buffer_damage-in-wayland-backe.patch
-%patch2 -p1
-# 0001-st-egl-Update-to-the-new-wl_shm_pool-interface.patch
-%patch3 -p1
-# 0001-Stop-using-wl-buffer-damage.patch
-%patch4 -p1
-# mesa-8.0.3-llvm3.1.patch
-%patch5 -p1
 # >> setup
 # << setup
 
@@ -282,8 +251,7 @@ Mesa libwayland-egl runtime libraries
     --with-egl-platforms=x11,fbdev,wayland \
     --enable-glx-tls \
     --enable-glx=yes \
-    --enable-dri \
-    --enable-shared-glapi=yes
+    --enable-dri
 
 make %{?jobs:-j%jobs}
 
@@ -340,9 +308,9 @@ popd
 
 %postun libGL -p /sbin/ldconfig
 
-%post libGLU -p /sbin/ldconfig
+%post dri-swrast-driver -p /sbin/ldconfig
 
-%postun libGLU -p /sbin/ldconfig
+%postun dri-swrast-driver -p /sbin/ldconfig
 
 %post libwayland-egl -p /sbin/ldconfig
 
@@ -385,7 +353,7 @@ popd
 %defattr(-,root,root,-)
 # >> files libEGL
 %{_libdir}/libEGL.so.1
-%{_libdir}/libEGL.so.1.0
+%{_libdir}/libEGL.so.1.0.0
 # << files libEGL
 
 %files libEGL-compat
@@ -456,31 +424,17 @@ popd
 %{_libdir}/pkgconfig/gl.pc
 # << files libGL-devel
 
-%files libGLU-devel
-%defattr(-,root,root,-)
-# >> files libGLU-devel
-%{_libdir}/libGLU.so
-%{_libdir}/pkgconfig/glu.pc
-%{_includedir}/GL/glu.h
-%{_includedir}/GL/glu_mangle.h
-# << files libGLU-devel
-
-%files libGLU
-%defattr(-,root,root,-)
-# >> files libGLU
-%{_libdir}/libGLU.so.1
-%{_libdir}/libGLU.so.1.3.*
-# << files libGLU
-
 %files dri-drivers-devel
 %defattr(-,root,root,-)
 # >> files dri-drivers-devel
+%{_libdir}/libdricore9.0.1.so
 %{_libdir}/pkgconfig/dri.pc
 # << files dri-drivers-devel
 
 %files dri-swrast-driver
 %defattr(-,root,root,-)
 # >> files dri-swrast-driver
+%{_libdir}/libdricore9.0.1.so.*
 %{_libdir}/dri/swrast_dri.so
 # << files dri-swrast-driver
 

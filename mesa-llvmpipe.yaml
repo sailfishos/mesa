@@ -1,6 +1,6 @@
 Name: mesa-llvmpipe
 Summary: Mesa graphics libraries built for LLVMpipe
-Version: 8.0.5
+Version: 9.0.1
 Release: 0
 Group: System/Libraries
 License: MIT
@@ -10,11 +10,7 @@ Sources:
     - mesa-llvmpipe-rpmlintrc
 Patches:
     - mesa-7.11-git-notimestamping.patch
-    - 0001-wayland-drm-Implement-wl_buffer.damage-in-old-versio.patch
-    - 0001-st-egl-Also-remove-wl_buffer_damage-in-wayland-backe.patch
-    - 0001-st-egl-Update-to-the-new-wl_shm_pool-interface.patch
-    - 0001-Stop-using-wl-buffer-damage.patch
-    - mesa-8.0.3-llvm3.1.patch
+    - fix-shm-roundtrip.patch
 SetupOptions: "-q -n Mesa-%{version} -b1"
 
 Description: |
@@ -168,21 +164,6 @@ SubPackages:
           - libX11-devel
       Provides:
           - libGL-devel
-
-    - Name: libGLU-devel
-      Summary: Mesa libGLU development package
-      Group: Development/Libraries
-      Description: Mesa libGLU development packages
-      Requires:
-          - mesa-llvmpipe-libGLU = %{version}-%{release}
-          - libGL-devel
-      Provides:
-          - libGLU-devel
-
-    - Name: libGLU
-      Summary: Mesa libGLU runtime library
-      Group: System/Libraries
-      Description: Mesa libGLU runtime libraries
 
     - Name: dri-drivers-devel
       Summary: Mesa-based DRI development files
