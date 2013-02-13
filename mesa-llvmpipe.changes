@@ -1,3 +1,7 @@
+* Wed Feb 13 2013 Carsten Munk <carsten.munk@jollamobile.com> - 9.0.2
+- Upgrade to 9.0.2
+- Forcibly disable SSE4.1/AVX usage due to VirtualBox bugginess
+
 * Tue Jan 22 2013 Carsten Munk <carsten.munk@jollamobile.com> - 9.0.1
 - Upgrade to 9.0.1
 - Add patch to fix wayland-shm roundtrip

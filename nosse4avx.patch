@@ -1,0 +1,22 @@
+Only in Mesa-9.0.1-nosse4avx: nosse4avx.patch
+diff -ru Mesa-9.0.1/src/gallium/auxiliary/util/u_cpu_detect.c Mesa-9.0.1-nosse4avx/src/gallium/auxiliary/util/u_cpu_detect.c
+--- Mesa-9.0.1/src/gallium/auxiliary/util/u_cpu_detect.c	2012-11-09 19:16:31.000000000 +0100
++++ Mesa-9.0.1-nosse4avx/src/gallium/auxiliary/util/u_cpu_detect.c	2013-02-13 11:47:04.922602265 +0100
+@@ -276,10 +276,17 @@
+          util_cpu_caps.has_sse2   = (regs2[3] >> 26) & 1; /* 0x4000000 */
+          util_cpu_caps.has_sse3   = (regs2[2] >>  0) & 1; /* 0x0000001 */
+          util_cpu_caps.has_ssse3  = (regs2[2] >>  9) & 1; /* 0x0000020 */
++#if 0
+          util_cpu_caps.has_sse4_1 = (regs2[2] >> 19) & 1;
+          util_cpu_caps.has_sse4_2 = (regs2[2] >> 20) & 1;
+          util_cpu_caps.has_avx    = (regs2[2] >> 28) & 1;
+          util_cpu_caps.has_mmx2   = util_cpu_caps.has_sse; /* SSE cpus supports mmxext too */
++#else
++         util_cpu_caps.has_sse4_1 = 0;
++         util_cpu_caps.has_sse4_2 = 0;
++         util_cpu_caps.has_avx    = 0;
++	 util_cpu_caps.has_mmx2   = 0;
++#endif
+ 
+          cacheline = ((regs2[1] >> 8) & 0xFF) * 8;
+          if (cacheline > 0)

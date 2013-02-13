@@ -1,6 +1,6 @@
 Name: mesa-llvmpipe
 Summary: Mesa graphics libraries built for LLVMpipe
-Version: 9.0.1
+Version: 9.0.2
 Release: 0
 Group: System/Libraries
 License: MIT
@@ -11,6 +11,8 @@ Sources:
 Patches:
     - mesa-7.11-git-notimestamping.patch
     - fix-shm-roundtrip.patch
+    - nosse4avx.patch
+    - nativewidth.patch
 SetupOptions: "-q -n Mesa-%{version} -b1"
 
 Description: |
@@ -61,7 +63,6 @@ ConfigOptions:
     - --enable-glx-tls
     - --enable-glx=yes
     - --enable-dri
-    - --enable-shared-glapi=yes
 Builder: make
 SubPackages:
     - Name: libglapi

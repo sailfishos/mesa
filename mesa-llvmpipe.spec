@@ -9,7 +9,7 @@ Name:       mesa-llvmpipe
 # << macros
 
 Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    9.0.1
+Version:    9.0.2
 Release:    0
 Group:      System/Libraries
 License:    MIT
@@ -19,6 +19,8 @@ Source1:    mesa-llvmpipe-rpmlintrc
 Source100:  mesa-llvmpipe.yaml
 Patch0:     mesa-7.11-git-notimestamping.patch
 Patch1:     fix-shm-roundtrip.patch
+Patch2:     nosse4avx.patch
+Patch3:     nativewidth.patch
 BuildRequires:  pkgconfig(glproto)
 BuildRequires:  pkgconfig(dri2proto) >= 1.1
 BuildRequires:  pkgconfig(xproto)
@@ -226,6 +228,10 @@ Mesa libwayland-egl runtime libraries
 %patch0 -p1
 # fix-shm-roundtrip.patch
 %patch1 -p1
+# nosse4avx.patch
+%patch2 -p1
+# nativewidth.patch
+%patch3 -p1
 # >> setup
 # << setup
 
@@ -427,14 +433,14 @@ popd
 %files dri-drivers-devel
 %defattr(-,root,root,-)
 # >> files dri-drivers-devel
-%{_libdir}/libdricore9.0.1.so
+%{_libdir}/libdricore9.0.2.so
 %{_libdir}/pkgconfig/dri.pc
 # << files dri-drivers-devel
 
 %files dri-swrast-driver
 %defattr(-,root,root,-)
 # >> files dri-swrast-driver
-%{_libdir}/libdricore9.0.1.so.*
+%{_libdir}/libdricore9.0.2.so.*
 %{_libdir}/dri/swrast_dri.so
 # << files dri-swrast-driver
 
