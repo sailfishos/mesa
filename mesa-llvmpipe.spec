@@ -9,7 +9,7 @@ Name:       mesa-llvmpipe
 # << macros
 
 Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    9.0.2
+Version:    9.0.3
 Release:    0
 Group:      System/Libraries
 License:    MIT
@@ -433,14 +433,14 @@ popd
 %files dri-drivers-devel
 %defattr(-,root,root,-)
 # >> files dri-drivers-devel
-%{_libdir}/libdricore9.0.2.so
+%{_libdir}/libdricore%{version}.so
 %{_libdir}/pkgconfig/dri.pc
 # << files dri-drivers-devel
 
 %files dri-swrast-driver
 %defattr(-,root,root,-)
 # >> files dri-swrast-driver
-%{_libdir}/libdricore9.0.2.so.*
+%{_libdir}/libdricore%{version}.so.*
 %{_libdir}/dri/swrast_dri.so
 # << files dri-swrast-driver
 
