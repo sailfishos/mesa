@@ -1,15 +1,16 @@
 # Conditional building of X11 related things
 %bcond_with X11
+%define mesa_version 9.2.5
 
 Name:       mesa-llvmpipe
 
 Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    9.2.3
+Version:    9.2.5
 Release:    0
 Group:      System/Libraries
 License:    MIT
 URL:        http://www.mesa3d.org/
-Source0:    ftp://ftp.freedesktop.org/pub/mesa/%{version}/MesaLib-%{version}.tar.bz2
+Source0:    %{name}-%{version}.tar.bz2
 Source1:    mesa-llvmpipe-rpmlintrc
 Patch0:     eglplatform_no_x11.patch
 
@@ -221,7 +222,7 @@ Mesa libwayland-egl runtime libraries
 
 
 %prep
-%setup -q -n Mesa-%{version} -b1
+%setup -q -n %{name}-%{version}/mesa
 
 %if ! %{with X11}
 # eglplatform_no_x11.patch
@@ -229,7 +230,7 @@ Mesa libwayland-egl runtime libraries
 %endif
 
 %build
-%reconfigure --disable-static \
+%autogen --disable-static \
     --enable-dri \
     --with-dri-drivers=swrast \
     --enable-osmesa=no \
@@ -386,12 +387,12 @@ popd
 
 %files dri-drivers-devel
 %defattr(-,root,root,-)
-%{_libdir}/libdricore%{version}.so
+%{_libdir}/libdricore%{mesa_version}.so
 %{_libdir}/pkgconfig/dri.pc
 
 %files dri-swrast-driver
 %defattr(-,root,root,-)
-%{_libdir}/libdricore%{version}.so.*
+%{_libdir}/libdricore%{mesa_version}.so.*
 %{_libdir}/dri/swrast_dri.so
 
 %files libwayland-egl-devel
