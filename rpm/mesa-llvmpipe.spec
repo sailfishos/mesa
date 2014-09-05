@@ -288,6 +288,12 @@ popd
 
 %postun libEGL-compat -p /sbin/ldconfig
 
+%if %{with X11}
+%post libGL -p /sbin/ldconfig
+
+%postun libGL -p /sbin/ldconfig
+%endif
+
 %post dri-swrast-driver -p /sbin/ldconfig
 
 %postun dri-swrast-driver -p /sbin/ldconfig
