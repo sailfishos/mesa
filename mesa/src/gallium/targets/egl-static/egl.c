@@ -32,6 +32,7 @@
 #ifdef HAVE_LIBUDEV
 #include <stdio.h> /* for sscanf */
 #include <libudev.h>
+#include <sys/stat.h>
 #endif
 
 #define DRIVER_MAP_GALLIUM_ONLY
