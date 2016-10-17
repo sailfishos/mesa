@@ -13,6 +13,7 @@ URL:        http://www.mesa3d.org/
 Source0:    %{name}-%{version}.tar.bz2
 Source1:    mesa-llvmpipe-rpmlintrc
 Patch0:     eglplatform_no_x11.patch
+Patch1:     disable-avx-support.diff
 
 %if %{with X11}
 BuildRequires:  pkgconfig(glproto)
@@ -228,6 +229,7 @@ Mesa libwayland-egl runtime libraries
 # eglplatform_no_x11.patch
 %patch0 -p1
 %endif
+%patch1 -p2
 
 %build
 %autogen --disable-static \
