@@ -32,6 +32,25 @@ Mesa is an open-source implementation of the OpenGL specification  -
 a system for rendering interactive 3D graphics.
 
 
+%package libgbm
+Summary:    Generic buffer management API
+Group:      System/Libraries
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Provides:   libgbm = %{version}-%{release}
+
+%description libgbm
+Generic buffer management API
+
+%package libgbm-devel
+Summary:    Mesa libgbm development package
+Group:      System/Libraries
+Requires:   %{name}-libgbm = %{version}-%{release}
+Provides:   libgbm-devel
+
+%description libgbm-devel
+Mesa libgbm development package.
+
 %package libglapi
 Summary:    Mesa shared gl api library
 Group:      System/Libraries
@@ -142,12 +161,11 @@ Mesa-based swrast DRI driver.
 %meson -Ddri-drivers= \
     -Dosmesa=none \
     -Ddri3=false \
-    -Dgbm=false \
     -Dllvm=true \
     -Dshared-llvm=false \
     -Dgallium-drivers=swrast \
     -Dvulkan-drivers= \
-    -Dplatforms=wayland \
+    -Dplatforms=drm,wayland \
     -Dglx=disabled \
     -Degl=true \
     -Dgles1=true \
@@ -158,8 +176,9 @@ Mesa-based swrast DRI driver.
 %install
 %meson_install
 
-# Remove empty file created by build
-rm -rf %{buildroot}/%{_libdir}/dri/kms_swrast_dri.so
+%post libgbm -p /sbin/ldconfig
+
+%postun libgbm -p /sbin/ldconfig
 
 %post libglapi -p /sbin/ldconfig
 
@@ -180,6 +199,16 @@ rm -rf %{buildroot}/%{_libdir}/dri/kms_swrast_dri.so
 %post dri-swrast-driver -p /sbin/ldconfig
 
 %postun dri-swrast-driver -p /sbin/ldconfig
+
+%files libgbm
+%defattr(-,root,root,-)
+%{_libdir}/libgbm.so.*
+
+%files libgbm-devel
+%defattr(-,root,root,-)
+/usr/include/gbm.h
+%{_libdir}/libgbm.so
+%{_libdir}/pkgconfig/gbm.pc
 
 %files libglapi
 %defattr(-,root,root,-)
@@ -255,3 +284,4 @@ rm -rf %{buildroot}/%{_libdir}/dri/kms_swrast_dri.so
 %dir %{_datadir}/drirc.d
 %{_datadir}/drirc.d/00-mesa-defaults.conf
 %{_libdir}/dri/swrast_dri.so
+%{_libdir}/dri/kms_swrast_dri.so
