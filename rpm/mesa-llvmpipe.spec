@@ -1,7 +1,7 @@
 Name:       mesa-llvmpipe
 
 Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    19.0.3
+Version:    19.3.2
 Release:    0
 Group:      System/Libraries
 License:    MIT
@@ -270,7 +270,6 @@ Mesa-based swrast DRI driver.
 %defattr(-,root,root,-)
 %{_includedir}/GL/gl.h
 %{_includedir}/GL/glcorearb.h
-%{_includedir}/GL/gl_mangle.h
 %{_includedir}/GL/glext.h
 %dir %{_includedir}/GL/internal
 %{_includedir}/GL/internal/dri_interface.h
