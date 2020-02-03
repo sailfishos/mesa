@@ -1,7 +1,7 @@
 Name:       mesa-llvmpipe
 
 Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    19.3.2
+Version:    19.3.3
 Release:    0
 Group:      System/Libraries
 License:    MIT
