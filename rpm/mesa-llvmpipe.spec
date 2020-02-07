@@ -10,18 +10,15 @@ Source0:    %{name}-%{version}.tar.bz2
 Patch1:     disable-avx-support.diff
 
 BuildRequires:  pkgconfig(libdrm)
-BuildRequires:  pkgconfig(libxml-2.0)
-BuildRequires:  pkgconfig(talloc)
-BuildRequires:  pkgconfig(libudev) >= 160
 BuildRequires:  pkgconfig(wayland-client)
 BuildRequires:  pkgconfig(wayland-egl)
 BuildRequires:  pkgconfig(wayland-protocols)
 BuildRequires:  pkgconfig(wayland-server)
+BuildRequires:  pkgconfig(zlib) >= 1.2.3
 BuildRequires:  pkgconfig meson
 BuildRequires:  expat-devel >= 2.0
 BuildRequires:  python3-devel
 BuildRequires:  python3-mako
-BuildRequires:  libxml2-python
 BuildRequires:  bison
 BuildRequires:  flex
 BuildRequires:  llvm-devel
