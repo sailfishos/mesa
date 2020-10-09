@@ -1,9 +1,8 @@
 Name:       mesa-llvmpipe
 
 Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    19.3.3
+Version:    20.1.8
 Release:    0
-Group:      System/Libraries
 License:    MIT
 URL:        http://www.mesa3d.org/
 Source0:    %{name}-%{version}.tar.bz2
@@ -31,7 +30,6 @@ a system for rendering interactive 3D graphics.
 
 %package libgbm
 Summary:    Generic buffer management API
-Group:      System/Libraries
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Provides:   libgbm = %{version}-%{release}
@@ -41,7 +39,6 @@ Generic buffer management API
 
 %package libgbm-devel
 Summary:    Mesa libgbm development package
-Group:      System/Libraries
 Requires:   %{name}-libgbm = %{version}-%{release}
 Provides:   libgbm-devel
 
@@ -50,7 +47,6 @@ Mesa libgbm development package.
 
 %package libglapi
 Summary:    Mesa shared gl api library
-Group:      System/Libraries
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 
@@ -59,7 +55,6 @@ Mesa shared gl api library.
 
 %package libGLESv1
 Summary:    Mesa libGLESv1 runtime libraries
-Group:      System/Libraries
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Provides:   libGLESv1 = %{version}-%{release}
@@ -69,7 +64,6 @@ Mesa libGLESv1 runtime library.
 
 %package libGLESv2
 Summary:    Mesa libGLESv2 runtime libraries
-Group:      System/Libraries
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Provides:   libGLESv2 = %{version}-%{release}
@@ -79,7 +73,6 @@ Mesa libGLESv2 runtime library.
 
 %package libEGL
 Summary:    Mesa libEGL runtime libraries and DRI drivers
-Group:      System/Libraries
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Provides:   libEGL = %{version}-%{release}
@@ -89,7 +82,6 @@ Mesa libEGL runtime library.
 
 %package libglapi-devel
 Summary:    Mesa libglapi development package
-Group:      System/Libraries
 Requires:   mesa-llvmpipe-libglapi = %{version}-%{release}
 Provides:   libglapi-devel
 
@@ -98,7 +90,6 @@ Mesa libglapi development package.
 
 %package libGLESv1-devel
 Summary:    Mesa libGLESv1 development package
-Group:      Development/Libraries
 Requires:   mesa-llvmpipe-libGLESv1 = %{version}-%{release}
 Provides:   libGLESv1-devel
 
@@ -107,7 +98,6 @@ Mesa libGLESv1 development packages
 
 %package libGLESv2-devel
 Summary:    Mesa libGLESv2 development package
-Group:      Development/Libraries
 Requires:   mesa-llvmpipe-libGLESv2 = %{version}-%{release}
 Provides:   libGLESv2-devel
 
@@ -116,7 +106,6 @@ Mesa libGLESv2 development packages
 
 %package libEGL-devel
 Summary:    Mesa libEGL development package
-Group:      Development/Libraries
 Requires:   mesa-llvmpipe-libEGL = %{version}-%{release}
 Provides:   libEGL-devel
 
@@ -125,7 +114,6 @@ Mesa libEGL development packages
 
 %package libGL-devel
 Summary:    Mesa libGL development package
-Group:      Development/Libraries
 Requires:   mesa-llvmpipe-libGL = %{version}-%{release}
 Provides:   libGL-devel
 
@@ -134,14 +122,12 @@ Mesa libGL development packages
 
 %package dri-drivers-devel
 Summary:    Mesa-based DRI development files
-Group:      Development/Libraries
 
 %description dri-drivers-devel
 Mesa-based DRI driver development files.
 
 %package dri-swrast-driver
 Summary:    Mesa-based DRI drivers
-Group:      Graphics/Display and Graphics Adaptation
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Provides:   mesa-llvmpipe-dri-drivers = %{version}-%{release}
@@ -150,9 +136,7 @@ Provides:   mesa-llvmpipe-dri-drivers = %{version}-%{release}
 Mesa-based swrast DRI driver.
 
 %prep
-%setup -q -n %{name}-%{version}/mesa
-
-%patch1 -p1
+%autosetup -p1 -n %{name}-%{version}/mesa
 
 %build
 %meson -Ddri-drivers= \
