@@ -1,7 +1,7 @@
 Name:       mesa-llvmpipe
 
 Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    20.1.8
+Version:    21.1.1
 Release:    0
 License:    MIT
 URL:        http://www.mesa3d.org/
@@ -140,17 +140,18 @@ Mesa-based swrast DRI driver.
 
 %build
 %meson -Ddri-drivers= \
-    -Dosmesa=none \
-    -Ddri3=false \
-    -Dllvm=true \
-    -Dshared-llvm=false \
+    -Dosmesa=false \
+    -Ddri3=disabled \
+    -Dllvm=enabled \
+    -Dshared-llvm=disabled \
     -Dgallium-drivers=swrast \
     -Dvulkan-drivers= \
-    -Dplatforms=drm,wayland \
+    -Dmicrosoft-clc=disabled \
+    -Dplatforms=wayland \
     -Dglx=disabled \
-    -Degl=true \
-    -Dgles1=true \
-    -Dgles2=true
+    -Degl=enabled \
+    -Dgles1=enabled \
+    -Dgles2=enabled
 
 %meson_build
 
