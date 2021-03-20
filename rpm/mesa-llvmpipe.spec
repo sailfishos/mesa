@@ -1,3 +1,8 @@
+%ifarch %{ix86} x86_64
+%global platform_vulkan ,intel
+%endif
+%global vulkan_drivers swrast,amd%{?platform_vulkan}
+
 Name:       mesa-llvmpipe
 
 Summary:    Mesa graphics libraries built for LLVMpipe
@@ -9,6 +14,8 @@ Source0:    %{name}-%{version}.tar.bz2
 Patch1:     disable-avx-support.diff
 
 BuildRequires:  pkgconfig(libdrm)
+BuildRequires:  libdrm-amdgpu
+BuildRequires:  pkgconfig(libelf)
 BuildRequires:  pkgconfig(wayland-client)
 BuildRequires:  pkgconfig(wayland-egl)
 BuildRequires:  pkgconfig(wayland-protocols)
@@ -135,6 +142,16 @@ Provides:   mesa-llvmpipe-dri-drivers = %{version}-%{release}
 %description dri-swrast-driver
 Mesa-based swrast DRI driver.
 
+%package vulkan-drivers
+Summary:    Mesa vulkan drivers
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Requires:   vulkan
+Provides:   vulkan-drivers
+
+%description vulkan-drivers
+Mesa vulkan drivers.
+
 %prep
 %autosetup -p1 -n %{name}-%{version}/mesa
 
@@ -145,7 +162,8 @@ Mesa-based swrast DRI driver.
     -Dllvm=enabled \
     -Dshared-llvm=disabled \
     -Dgallium-drivers=swrast \
-    -Dvulkan-drivers= \
+    -Dvulkan-drivers=%{?vulkan_drivers} \
+    -Dvulkan-layers=device-select \
     -Dmicrosoft-clc=disabled \
     -Dplatforms=wayland \
     -Dglx=disabled \
@@ -258,6 +276,19 @@ Mesa-based swrast DRI driver.
 %{_includedir}/GL/glext.h
 %dir %{_includedir}/GL/internal
 %{_includedir}/GL/internal/dri_interface.h
+
+%files vulkan-drivers
+%defattr(-,root,root,-)
+%{_libdir}/libVkLayer_MESA_device_select.so
+%{_datadir}/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+%{_libdir}/libvulkan_lvp.so
+%{_datadir}/vulkan/icd.d/lvp_icd.*.json
+%{_libdir}/libvulkan_radeon.so
+%{_datadir}/vulkan/icd.d/radeon_icd.*.json
+%ifarch %{ix86} x86_64
+%{_libdir}/libvulkan_intel.so
+%{_datadir}/vulkan/icd.d/intel_icd.*.json
+%endif
 
 %files dri-drivers-devel
 %defattr(-,root,root,-)
