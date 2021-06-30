@@ -1,7 +1,7 @@
 Name:       mesa-llvmpipe
 
 Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    21.1.1
+Version:    21.1.6
 Release:    0
 License:    MIT
 URL:        http://www.mesa3d.org/
