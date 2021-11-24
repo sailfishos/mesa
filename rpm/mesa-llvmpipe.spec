@@ -1,302 +1,573 @@
 %ifarch %{ix86} x86_64
+%global with_crocus 1
+%global with_iris   1
+%global with_vmware 0
+%global with_xa     1
+%global platform_dri ,i915,i965
 %global platform_vulkan ,intel
 %endif
-%global vulkan_drivers swrast,amd%{?platform_vulkan}
 
-Name:       mesa-llvmpipe
+%ifarch %{arm} aarch64
+%global with_freedreno 1
+%global with_kmsro     1
+%global with_panfrost  1
+%global with_tegra     1
+%global with_xa        1
+%global platform_vulkan ,broadcom,freedreno,panfrost
+%endif
 
-Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    21.1.6
-Release:    0
-License:    MIT
-URL:        http://www.mesa3d.org/
-Source0:    %{name}-%{version}.tar.bz2
-Patch1:     disable-avx-support.diff
+%ifarch %{valgrind_arches}
+%bcond_without valgrind
+%else
+%bcond_with valgrind
+%endif
 
-BuildRequires:  pkgconfig(libdrm)
-BuildRequires:  libdrm-amdgpu
-BuildRequires:  pkgconfig(libelf)
-BuildRequires:  pkgconfig(wayland-client)
-BuildRequires:  pkgconfig(wayland-egl)
-BuildRequires:  pkgconfig(wayland-protocols)
-BuildRequires:  pkgconfig(wayland-server)
+%if !0%{?rhel}
+%global dri_drivers %{?base_dri}%{?platform_dri}
+%endif
+%global vulkan_drivers swrast%{?base_vulkan}%{?platform_vulkan}
+
+Name:           mesa
+Summary:        Mesa graphics libraries
+%global ver 21.3.0
+Version:        %{lua:ver = string.gsub(rpm.expand("%{ver}"), "-", "~"); print(ver)}
+Release:        %autorelease
+License:        MIT
+URL:            http://www.mesa3d.org
+
+Source0:        https://mesa.freedesktop.org/archive/%{name}-%{ver}.tar.xz
+# src/gallium/auxiliary/postprocess/pp_mlaa* have an ... interestingly worded license.
+# Source1 contains email correspondence clarifying the license terms.
+# Fedora opts to ignore the optional part of clause 2 and treat that code as 2 clause BSD.
+Source1:        Mesa-MLAA-License-Clarification-Email.txt
+
+# Patches from Karol Herbst to make Tegra work again:
+# https://bugzilla.redhat.com/show_bug.cgi?id=1989726#c46
+# see also:
+# https://gitlab.freedesktop.org/mesa/mesa/-/issues/5399
+# First two are https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/13231
+Patch0003: 0001-tegra-Use-private-reference-count-for-sampler-views.patch
+Patch0004: 0002-tegra-Use-private-reference-count-for-resources.patch
+# Last four revert https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/3724
+Patch0005: 0003-Revert-nouveau-Use-format-modifiers-in-buffer-alloca.patch
+Patch0006: 0004-Revert-nouveau-no-modifier-the-invalid-modifier.patch
+Patch0007: 0005-Revert-nouveau-Use-DRM_FORMAT_MOD_NVIDIA_BLOCK_LINEA.patch
+Patch0008: 0006-Revert-nouveau-Stash-supported-sector-layout-in-scre.patch
+
+BuildRequires:  meson >= 0.45
+BuildRequires:  gcc
+BuildRequires:  gcc-c++
+BuildRequires:  gettext
+%if 0%{?with_hardware}
+BuildRequires:  kernel-headers
+%endif
+# We only check for the minimum version of pkgconfig(libdrm) needed so that the
+# SRPMs for each arch still have the same build dependencies. See:
+# https://bugzilla.redhat.com/show_bug.cgi?id=1859515
+BuildRequires:  pkgconfig(libdrm) >= 2.4.97
+BuildRequires:  pkgconfig(expat)
 BuildRequires:  pkgconfig(zlib) >= 1.2.3
-BuildRequires:  pkgconfig meson
-BuildRequires:  expat-devel >= 2.0
-BuildRequires:  python3-devel
-BuildRequires:  python3-mako
+BuildRequires:  pkgconfig(libselinux)
+BuildRequires:  pkgconfig(wayland-scanner)
+BuildRequires:  pkgconfig(wayland-protocols) >= 1.8
+BuildRequires:  pkgconfig(wayland-client) >= 1.11
+BuildRequires:  pkgconfig(wayland-server) >= 1.11
+BuildRequires:  pkgconfig(wayland-egl-backend) >= 3
 BuildRequires:  bison
 BuildRequires:  flex
-BuildRequires:  llvm-devel
-BuildRequires:  gettext
+%if 0%{?with_vdpau}
+BuildRequires:  pkgconfig(vdpau) >= 1.1
+%endif
+%if 0%{?with_vaapi}
+BuildRequires:  pkgconfig(libva) >= 0.38.0
+%endif
+%if 0%{?with_omx}
+BuildRequires:  pkgconfig(libomxil-bellagio)
+%endif
+BuildRequires:  pkgconfig(libelf)
+BuildRequires:  pkgconfig(libglvnd) >= 1.3.2
+BuildRequires:  llvm-devel >= 7.0.0
+%if 0%{?with_opencl}
+BuildRequires:  clang-devel
+BuildRequires:  pkgconfig(libclc)
+%endif
+%if %{with valgrind}
+BuildRequires:  pkgconfig(valgrind)
+%endif
+BuildRequires:  python3-devel
+BuildRequires:  python3-mako
+BuildRequires:  vulkan-headers
+BuildRequires:  glslang
+%if 0%{?with_vulkan_hw}
+BuildRequires:  pkgconfig(vulkan)
+%endif
 
 %description
-Mesa is an open-source implementation of the OpenGL specification  -
-a system for rendering interactive 3D graphics.
+%{summary}.
 
+%package filesystem
+Summary:        Mesa driver filesystem
+Provides:       mesa-dri-filesystem = %{?epoch:%{epoch}:}%{version}-%{release}
+Obsoletes:      mesa-dri-filesystem < %{?epoch:%{epoch}:}%{version}-%{release}
 
-%package libgbm
-Summary:    Generic buffer management API
-Requires(post): /sbin/ldconfig
-Requires(postun): /sbin/ldconfig
-Provides:   libgbm = %{version}-%{release}
+%description filesystem
+%{summary}.
 
-%description libgbm
-Generic buffer management API
+%package libGL
+Summary:        Mesa libGL runtime libraries
+Requires:       %{name}-libglapi%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires:       libglvnd-glx%{?_isa} >= 1:1.3.2
 
-%package libgbm-devel
-Summary:    Mesa libgbm development package
-Requires:   %{name}-libgbm = %{version}-%{release}
-Provides:   libgbm-devel
-
-%description libgbm-devel
-Mesa libgbm development package.
-
-%package libglapi
-Summary:    Mesa shared gl api library
-Requires(post): /sbin/ldconfig
-Requires(postun): /sbin/ldconfig
-
-%description libglapi
-Mesa shared gl api library.
-
-%package libGLESv1
-Summary:    Mesa libGLESv1 runtime libraries
-Requires(post): /sbin/ldconfig
-Requires(postun): /sbin/ldconfig
-Provides:   libGLESv1 = %{version}-%{release}
-
-%description libGLESv1
-Mesa libGLESv1 runtime library.
-
-%package libGLESv2
-Summary:    Mesa libGLESv2 runtime libraries
-Requires(post): /sbin/ldconfig
-Requires(postun): /sbin/ldconfig
-Provides:   libGLESv2 = %{version}-%{release}
-
-%description libGLESv2
-Mesa libGLESv2 runtime library.
-
-%package libEGL
-Summary:    Mesa libEGL runtime libraries and DRI drivers
-Requires(post): /sbin/ldconfig
-Requires(postun): /sbin/ldconfig
-Provides:   libEGL = %{version}-%{release}
-
-%description libEGL
-Mesa libEGL runtime library.
-
-%package libglapi-devel
-Summary:    Mesa libglapi development package
-Requires:   mesa-llvmpipe-libglapi = %{version}-%{release}
-Provides:   libglapi-devel
-
-%description libglapi-devel
-Mesa libglapi development package.
-
-%package libGLESv1-devel
-Summary:    Mesa libGLESv1 development package
-Requires:   mesa-llvmpipe-libGLESv1 = %{version}-%{release}
-Provides:   libGLESv1-devel
-
-%description libGLESv1-devel
-Mesa libGLESv1 development packages
-
-%package libGLESv2-devel
-Summary:    Mesa libGLESv2 development package
-Requires:   mesa-llvmpipe-libGLESv2 = %{version}-%{release}
-Provides:   libGLESv2-devel
-
-%description libGLESv2-devel
-Mesa libGLESv2 development packages
-
-%package libEGL-devel
-Summary:    Mesa libEGL development package
-Requires:   mesa-llvmpipe-libEGL = %{version}-%{release}
-Provides:   libEGL-devel
-
-%description libEGL-devel
-Mesa libEGL development packages
+%description libGL
+%{summary}.
 
 %package libGL-devel
-Summary:    Mesa libGL development package
-Requires:   mesa-llvmpipe-libGL = %{version}-%{release}
-Provides:   libGL-devel
+Summary:        Mesa libGL development package
+Requires:       %{name}-libGL%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires:       libglvnd-devel%{?_isa} >= 1:1.3.2
+Provides:       libGL-devel
+Provides:       libGL-devel%{?_isa}
+Recommends:     gl-manpages
 
 %description libGL-devel
-Mesa libGL development packages
+%{summary}.
 
-%package dri-drivers-devel
-Summary:    Mesa-based DRI development files
+%package libEGL
+Summary:        Mesa libEGL runtime libraries
+Requires:       libglvnd-egl%{?_isa} >= 1:1.3.2
 
-%description dri-drivers-devel
-Mesa-based DRI driver development files.
+%description libEGL
+%{summary}.
 
-%package dri-swrast-driver
-Summary:    Mesa-based DRI drivers
-Requires(post): /sbin/ldconfig
-Requires(postun): /sbin/ldconfig
-Provides:   mesa-llvmpipe-dri-drivers = %{version}-%{release}
+%package libEGL-devel
+Summary:        Mesa libEGL development package
+Requires:       %{name}-libEGL%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires:       libglvnd-devel%{?_isa} >= 1:1.3.2
+Requires:       %{name}-khr-devel%{?_isa}
+Provides:       libEGL-devel
+Provides:       libEGL-devel%{?_isa}
 
-%description dri-swrast-driver
-Mesa-based swrast DRI driver.
+%description libEGL-devel
+%{summary}.
+
+%package dri-drivers
+Summary:        Mesa-based DRI drivers
+Requires:       %{name}-filesystem%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
+
+%description dri-drivers
+%{summary}.
+
+%if 0%{?with_omx}
+%package omx-drivers
+Summary:        Mesa-based OMX drivers
+Requires:       %{name}-filesystem%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
+
+%description omx-drivers
+%{summary}.
+%endif
+
+%if 0%{?with_vdpau}
+%package        vdpau-drivers
+Summary:        Mesa-based VDPAU drivers
+Requires:       %{name}-filesystem%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
+
+%description vdpau-drivers
+%{summary}.
+%endif
+
+%package libOSMesa
+Summary:        Mesa offscreen rendering libraries
+Requires:       %{name}-libglapi%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
+Provides:       libOSMesa
+Provides:       libOSMesa%{?_isa}
+
+%description libOSMesa
+%{summary}.
+
+%package libOSMesa-devel
+Summary:        Mesa offscreen rendering development package
+Requires:       %{name}-libOSMesa%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
+
+%description libOSMesa-devel
+%{summary}.
+
+%package libgbm
+Summary:        Mesa gbm runtime library
+Provides:       libgbm
+Provides:       libgbm%{?_isa}
+
+%description libgbm
+%{summary}.
+
+%package libgbm-devel
+Summary:        Mesa libgbm development package
+Requires:       %{name}-libgbm%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
+Provides:       libgbm-devel
+Provides:       libgbm-devel%{?_isa}
+
+%description libgbm-devel
+%{summary}.
+
+%if 0%{?with_xa}
+%package libxatracker
+Summary:        Mesa XA state tracker
+Provides:       libxatracker
+Provides:       libxatracker%{?_isa}
+
+%description libxatracker
+%{summary}.
+
+%package libxatracker-devel
+Summary:        Mesa XA state tracker development package
+Requires:       %{name}-libxatracker%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
+Provides:       libxatracker-devel
+Provides:       libxatracker-devel%{?_isa}
+
+%description libxatracker-devel
+%{summary}.
+%endif
+
+%package libglapi
+Summary:        Mesa shared glapi
+Provides:       libglapi
+Provides:       libglapi%{?_isa}
+
+%description libglapi
+%{summary}.
+
+%if 0%{?with_opencl}
+%package libOpenCL
+Summary:        Mesa OpenCL runtime library
+Requires:       ocl-icd%{?_isa}
+Requires:       libclc%{?_isa}
+Requires:       %{name}-libgbm%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires:       opencl-filesystem
+
+%description libOpenCL
+%{summary}.
+
+%package libOpenCL-devel
+Summary:        Mesa OpenCL development package
+Requires:       %{name}-libOpenCL%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
+
+%description libOpenCL-devel
+%{summary}.
+%endif
+
+%if 0%{?with_nine}
+%package libd3d
+Summary:        Mesa Direct3D9 state tracker
+
+%description libd3d
+%{summary}.
+
+%package libd3d-devel
+Summary:        Mesa Direct3D9 state tracker development package
+Requires:       %{name}-libd3d%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
+
+%description libd3d-devel
+%{summary}.
+%endif
 
 %package vulkan-drivers
-Summary:    Mesa vulkan drivers
-Requires(post): /sbin/ldconfig
-Requires(postun): /sbin/ldconfig
-Requires:   vulkan
-Provides:   vulkan-drivers
+Summary:        Mesa Vulkan drivers
+Requires:       vulkan%{_isa}
 
 %description vulkan-drivers
-Mesa vulkan drivers.
+The drivers with support for the Vulkan API.
+
+%package vulkan-devel
+Summary:        Mesa Vulkan development files
+Requires:       %{name}-vulkan-drivers%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires:       vulkan-devel
+
+%description vulkan-devel
+Headers for development with the Vulkan API.
 
 %prep
-%autosetup -p1 -n %{name}-%{version}/mesa
+%autosetup -n %{name}-%{ver} -p1
+cp %{SOURCE1} docs/
 
 %build
-%meson -Ddri-drivers= \
-    -Dosmesa=false \
-    -Ddri3=disabled \
-    -Dllvm=enabled \
-    -Dshared-llvm=disabled \
-    -Dgallium-drivers=swrast \
-    -Dvulkan-drivers=%{?vulkan_drivers} \
-    -Dvulkan-layers=device-select \
-    -Dmicrosoft-clc=disabled \
-    -Dplatforms=wayland \
-    -Dglx=disabled \
-    -Degl=enabled \
-    -Dgles1=enabled \
-    -Dgles2=enabled
+# We've gotten a report that enabling LTO for mesa breaks some games. See
+# https://bugzilla.redhat.com/show_bug.cgi?id=1862771 for details.
+# Disable LTO for now
+%define _lto_cflags %{nil}
 
+%meson \
+  -Dplatforms=wayland \
+  -Ddri3=enabled \
+  -Ddri-drivers=%{?dri_drivers} \
+  -Dosmesa=true \
+%if 0%{?with_hardware}
+  -Dgallium-drivers=swrast,virgl,nouveau%{?with_r300:,r300}%{?with_crocus:,crocus}%{?with_iris:,iris}%{?with_vmware:,svga}%{?with_radeonsi:,radeonsi}%{?with_r600:,r600}%{?with_freedreno:,freedreno}%{?with_etnaviv:,etnaviv}%{?with_tegra:,tegra}%{?with_vc4:,vc4}%{?with_v3d:,v3d}%{?with_kmsro:,kmsro}%{?with_lima:,lima}%{?with_panfrost:,panfrost}%{?with_vulkan_hw:,zink} \
+%else
+  -Dgallium-drivers=swrast,virgl \
+%endif
+  -Dgallium-vdpau=%{?with_vdpau:enabled}%{!?with_vdpau:disabled} \
+  -Dgallium-xvmc=disabled \
+  -Dgallium-omx=%{?with_omx:bellagio}%{!?with_omx:disabled} \
+  -Dgallium-va=%{?with_vaapi:enabled}%{!?with_vaapi:disabled} \
+  -Dgallium-xa=%{?with_xa:enabled}%{!?with_xa:disabled} \
+  -Dgallium-nine=%{?with_nine:true}%{!?with_nine:false} \
+  -Dgallium-opencl=%{?with_opencl:icd}%{!?with_opencl:disabled} \
+  -Dvulkan-drivers=%{?vulkan_drivers} \
+  -Dvulkan-layers=device-select \
+  -Dshared-glapi=enabled \
+  -Dgles1=enabled \
+  -Dgles2=enabled \
+  -Dopengl=true \
+  -Dgbm=enabled \
+  -Dglx=dri \
+  -Degl=enabled \
+  -Dglvnd=true \
+  -Dmicrosoft-clc=disabled \
+  -Dllvm=enabled \
+  -Dshared-llvm=enabled \
+  -Dvalgrind=%{?with_valgrind:enabled}%{!?with_valgrind:disabled} \
+  -Dbuild-tests=false \
+  -Dselinux=true \
+  -Dprefer-crocus=true \
+  %{nil}
 %meson_build
 
 %install
 %meson_install
 
-%post libgbm -p /sbin/ldconfig
+# libvdpau opens the versioned name, don't bother including the unversioned
+rm -vf %{buildroot}%{_libdir}/vdpau/*.so
+# likewise glvnd
+rm -vf %{buildroot}%{_libdir}/libGLX_mesa.so
+rm -vf %{buildroot}%{_libdir}/libEGL_mesa.so
+# XXX can we just not build this
+rm -vf %{buildroot}%{_libdir}/libGLES*
 
-%postun libgbm -p /sbin/ldconfig
+# this keeps breaking, check it early.  note that the exit from eu-ftr is odd.
+pushd %{buildroot}%{_libdir}
+for i in libOSMesa*.so libGL.so ; do
+    eu-findtextrel $i && exit 1
+done
+popd
 
-%post libglapi -p /sbin/ldconfig
+%files filesystem
+%doc docs/Mesa-MLAA-License-Clarification-Email.txt
+%dir %{_libdir}/dri
+%if 0%{?with_hardware}
+%if 0%{?with_vdpau}
+%dir %{_libdir}/vdpau
+%endif
+%endif
 
-%postun libglapi -p /sbin/ldconfig
+%files libGL
+%{_libdir}/libGLX_mesa.so.0*
+%{_libdir}/libGLX_system.so.0*
+%files libGL-devel
+%dir %{_includedir}/GL/internal
+%{_includedir}/GL/internal/dri_interface.h
+%{_libdir}/pkgconfig/dri.pc
+%{_libdir}/libglapi.so
 
-%post libGLESv1 -p /sbin/ldconfig
-
-%postun libGLESv1 -p /sbin/ldconfig
-
-%post libGLESv2 -p /sbin/ldconfig
-
-%postun libGLESv2 -p /sbin/ldconfig
-
-%post libEGL -p /sbin/ldconfig
-
-%postun libEGL -p /sbin/ldconfig
-
-%post dri-swrast-driver -p /sbin/ldconfig
-
-%postun dri-swrast-driver -p /sbin/ldconfig
-
-%files
-%license docs/license.rst
-
-%files libgbm
-%defattr(-,root,root,-)
-%{_libdir}/libgbm.so.*
-
-%files libgbm-devel
-%defattr(-,root,root,-)
-/usr/include/gbm.h
-%{_libdir}/libgbm.so
-%{_libdir}/pkgconfig/gbm.pc
+%files libEGL
+%{_datadir}/glvnd/egl_vendor.d/50_mesa.json
+%{_libdir}/libEGL_mesa.so.0*
+%files libEGL-devel
+%dir %{_includedir}/EGL
+%{_includedir}/EGL/eglmesaext.h
+%{_includedir}/EGL/eglextchromium.h
 
 %files libglapi
-%defattr(-,root,root,-)
 %{_libdir}/libglapi.so.0
 %{_libdir}/libglapi.so.0.*
 
-%files libGLESv1
-%defattr(-,root,root,-)
-%{_libdir}/libGLESv1_CM.so.*
+%files libOSMesa
+%{_libdir}/libOSMesa.so.8*
+%files libOSMesa-devel
+%dir %{_includedir}/GL
+%{_includedir}/GL/osmesa.h
+%{_libdir}/libOSMesa.so
+%{_libdir}/pkgconfig/osmesa.pc
 
-%files libGLESv2
-%defattr(-,root,root,-)
-%{_libdir}/libGLESv2.so.*
+%files libgbm
+%{_libdir}/libgbm.so.1
+%{_libdir}/libgbm.so.1.*
+%files libgbm-devel
+%{_libdir}/libgbm.so
+%{_includedir}/gbm.h
+%{_libdir}/pkgconfig/gbm.pc
 
-%files libEGL
-%defattr(-,root,root,-)
-%{_libdir}/libEGL.so.*
+%if 0%{?with_xa}
+%files libxatracker
+%if 0%{?with_hardware}
+%{_libdir}/libxatracker.so.2
+%{_libdir}/libxatracker.so.2.*
+%endif
 
-%files libglapi-devel
-%defattr(-,root,root,-)
-%{_libdir}/libglapi.so
+%files libxatracker-devel
+%if 0%{?with_hardware}
+%{_libdir}/libxatracker.so
+%{_includedir}/xa_tracker.h
+%{_includedir}/xa_composite.h
+%{_includedir}/xa_context.h
+%{_libdir}/pkgconfig/xatracker.pc
+%endif
+%endif
 
-%files libGLESv1-devel
-%defattr(-,root,root,-)
-%{_libdir}/libGLESv1_CM.so
-%{_includedir}/GLES/egl.h
-%{_includedir}/GLES/gl.h
-%{_includedir}/GLES/glext.h
-%{_includedir}/GLES/glplatform.h
-%{_libdir}/pkgconfig/glesv1_cm.pc
+%if 0%{?with_opencl}
+%files libOpenCL
+%{_libdir}/libMesaOpenCL.so.*
+%{_sysconfdir}/OpenCL/vendors/mesa.icd
+%files libOpenCL-devel
+%{_libdir}/libMesaOpenCL.so
+%endif
 
-%files libGLESv2-devel
-%defattr(-,root,root,-)
-%{_libdir}/libGLESv2.so
-%{_includedir}/GLES2/gl2.h
-%{_includedir}/GLES2/gl2ext.h
-%{_includedir}/GLES2/gl2platform.h
-%{_includedir}/GLES3/gl3.h
-%{_includedir}/GLES3/gl31.h
-%{_includedir}/GLES3/gl32.h
-%{_includedir}/GLES3/gl3ext.h
-%{_includedir}/GLES3/gl3platform.h
-%{_libdir}/pkgconfig/glesv2.pc
+%if 0%{?with_nine}
+%files libd3d
+%dir %{_libdir}/d3d/
+%{_libdir}/d3d/*.so.*
 
-%files libEGL-devel
-%defattr(-,root,root,-)
-%{_libdir}/libEGL.so
-%dir %{_includedir}/EGL
-%{_includedir}/EGL/egl.h
-%{_includedir}/EGL/eglext.h
-%{_includedir}/EGL/eglextchromium.h
-%{_includedir}/EGL/eglplatform.h
-%{_includedir}/EGL/eglmesaext.h
-%dir %{_includedir}/KHR
-%{_includedir}/KHR/khrplatform.h
-%{_libdir}/pkgconfig/egl.pc
+%files libd3d-devel
+%{_libdir}/pkgconfig/d3d.pc
+%{_includedir}/d3dadapter/
+%{_libdir}/d3d/*.so
+%endif
 
-%files libGL-devel
-%defattr(-,root,root,-)
-%{_includedir}/GL/gl.h
-%{_includedir}/GL/glcorearb.h
-%{_includedir}/GL/glext.h
-%dir %{_includedir}/GL/internal
-%{_includedir}/GL/internal/dri_interface.h
+%files dri-drivers
+%dir %{_datadir}/drirc.d
+%{_datadir}/drirc.d/00-mesa-defaults.conf
+%{_libdir}/dri/kms_swrast_dri.so
+%{_libdir}/dri/swrast_dri.so
+%{_libdir}/dri/virtio_gpu_dri.so
+
+%if 0%{?with_hardware}
+%if !0%{?rhel}
+%{_libdir}/dri/radeon_dri.so
+%{_libdir}/dri/r200_dri.so
+%{_libdir}/dri/nouveau_vieux_dri.so
+%endif
+%if 0%{?with_r300}
+%{_libdir}/dri/r300_dri.so
+%endif
+%if 0%{?with_radeonsi}
+%if 0%{?with_r600}
+%{_libdir}/dri/r600_dri.so
+%endif
+%{_libdir}/dri/radeonsi_dri.so
+%endif
+%ifarch %{ix86} x86_64
+%if !0%{?rhel}
+%{_libdir}/dri/i830_dri.so
+%{_libdir}/dri/i915_dri.so
+%{_libdir}/dri/i965_dri.so
+%endif
+%{_libdir}/dri/crocus_dri.so
+%{_libdir}/dri/iris_dri.so
+%endif
+%ifarch %{arm} aarch64
+%{_libdir}/dri/ingenic-drm_dri.so
+%{_libdir}/dri/imx-drm_dri.so
+%{_libdir}/dri/kirin_dri.so
+%{_libdir}/dri/mali-dp_dri.so
+%{_libdir}/dri/mcde_dri.so
+%{_libdir}/dri/mxsfb-drm_dri.so
+%{_libdir}/dri/stm_dri.so
+%endif
+%if 0%{?with_vc4}
+%{_libdir}/dri/vc4_dri.so
+%endif
+%if 0%{?with_v3d}
+%{_libdir}/dri/v3d_dri.so
+%endif
+%if 0%{?with_freedreno}
+%{_libdir}/dri/kgsl_dri.so
+%{_libdir}/dri/msm_dri.so
+%endif
+%if 0%{?with_etnaviv}
+%{_libdir}/dri/etnaviv_dri.so
+%endif
+%if 0%{?with_tegra}
+%{_libdir}/dri/tegra_dri.so
+%endif
+%if 0%{?with_lima}
+%{_libdir}/dri/lima_dri.so
+%endif
+%if 0%{?with_panfrost}
+%{_libdir}/dri/panfrost_dri.so
+%endif
+%{_libdir}/dri/nouveau_dri.so
+%if 0%{?with_vmware}
+%{_libdir}/dri/vmwgfx_dri.so
+%endif
+%{_libdir}/dri/nouveau_drv_video.so
+%if 0%{?with_r600}
+%{_libdir}/dri/r600_drv_video.so
+%endif
+%if 0%{?with_radeonsi}
+%{_libdir}/dri/radeonsi_drv_video.so
+%endif
+%endif
+%if 0%{?with_opencl}
+%dir %{_libdir}/gallium-pipe
+%{_libdir}/gallium-pipe/*.so
+%endif
+%if 0%{?with_kmsro}
+%{_libdir}/dri/armada-drm_dri.so
+%{_libdir}/dri/exynos_dri.so
+%{_libdir}/dri/hx8357d_dri.so
+%{_libdir}/dri/ili9225_dri.so
+%{_libdir}/dri/ili9341_dri.so
+%{_libdir}/dri/imx-dcss_dri.so
+%{_libdir}/dri/mediatek_dri.so
+%{_libdir}/dri/meson_dri.so
+%{_libdir}/dri/mi0283qt_dri.so
+%{_libdir}/dri/pl111_dri.so
+%{_libdir}/dri/repaper_dri.so
+%{_libdir}/dri/rockchip_dri.so
+%{_libdir}/dri/st7586_dri.so
+%{_libdir}/dri/st7735r_dri.so
+%{_libdir}/dri/sun4i-drm_dri.so
+%endif
+%if 0%{?with_vulkan_hw}
+%{_libdir}/dri/zink_dri.so
+%endif
+
+%if 0%{?with_omx}
+%files omx-drivers
+%{_libdir}/bellagio/libomx_mesa.so
+%endif
+%if 0%{?with_vdpau}
+%files vdpau-drivers
+%{_libdir}/vdpau/libvdpau_nouveau.so.1*
+%if 0%{?with_r300}
+%{_libdir}/vdpau/libvdpau_r300.so.1*
+%endif
+%if 0%{?with_r600}
+%{_libdir}/vdpau/libvdpau_r600.so.1*
+%endif
+%if 0%{?with_radeonsi}
+%{_libdir}/vdpau/libvdpau_radeonsi.so.1*
+%endif
+%endif
 
 %files vulkan-drivers
-%defattr(-,root,root,-)
-%{_libdir}/libVkLayer_MESA_device_select.so
-%{_datadir}/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
 %{_libdir}/libvulkan_lvp.so
 %{_datadir}/vulkan/icd.d/lvp_icd.*.json
+%{_libdir}/libVkLayer_MESA_device_select.so
+%{_datadir}/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+%if 0%{?with_vulkan_hw}
 %{_libdir}/libvulkan_radeon.so
 %{_datadir}/vulkan/icd.d/radeon_icd.*.json
 %ifarch %{ix86} x86_64
 %{_libdir}/libvulkan_intel.so
 %{_datadir}/vulkan/icd.d/intel_icd.*.json
 %endif
+%ifarch %{arm} aarch64
+%{_libdir}/libvulkan_broadcom.so
+%{_datadir}/vulkan/icd.d/broadcom_icd.*.json
+%{_libdir}/libvulkan_freedreno.so
+%{_datadir}/vulkan/icd.d/freedreno_icd.*.json
+%{_libdir}/libvulkan_panfrost.so
+%{_datadir}/vulkan/icd.d/panfrost_icd.*.json
+%endif
+%endif
 
-%files dri-drivers-devel
-%defattr(-,root,root,-)
-%{_libdir}/pkgconfig/dri.pc
-
-%files dri-swrast-driver
-%defattr(-,root,root,-)
-%dir %{_datadir}/drirc.d
-%{_datadir}/drirc.d/00-mesa-defaults.conf
-%{_libdir}/dri/swrast_dri.so
-%{_libdir}/dri/kms_swrast_dri.so
+%files vulkan-devel
