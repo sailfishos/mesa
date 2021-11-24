@@ -85,7 +85,7 @@ BuildRequires:  pkgconfig(libva) >= 0.38.0
 BuildRequires:  pkgconfig(libomxil-bellagio)
 %endif
 BuildRequires:  pkgconfig(libelf)
-BuildRequires:  pkgconfig(libglvnd) >= 1.3.2
+#BuildRequires:  pkgconfig(libglvnd) >= 1.3.2
 BuildRequires:  llvm-devel >= 7.0.0
 %if 0%{?with_opencl}
 BuildRequires:  clang-devel
@@ -97,7 +97,7 @@ BuildRequires:  pkgconfig(valgrind)
 BuildRequires:  python3-devel
 BuildRequires:  python3-mako
 BuildRequires:  vulkan-headers
-BuildRequires:  glslang
+#BuildRequires:  glslang
 %if 0%{?with_vulkan_hw}
 BuildRequires:  pkgconfig(vulkan)
 %endif
@@ -320,7 +320,7 @@ cp %{SOURCE1} docs/
   -Dgbm=enabled \
   -Dglx=dri \
   -Degl=enabled \
-  -Dglvnd=true \
+  -Dglvnd=false \
   -Dmicrosoft-clc=disabled \
   -Dllvm=enabled \
   -Dshared-llvm=enabled \
@@ -368,7 +368,7 @@ popd
 %{_libdir}/libglapi.so
 
 %files libEGL
-%{_datadir}/glvnd/egl_vendor.d/50_mesa.json
+#%{_datadir}/glvnd/egl_vendor.d/50_mesa.json
 %{_libdir}/libEGL_mesa.so.0*
 %files libEGL-devel
 %dir %{_includedir}/EGL
