@@ -29,13 +29,12 @@
 
 Name:           mesa
 Summary:        Mesa graphics libraries
-%global ver 21.3.0
-Version:        %{lua:ver = string.gsub(rpm.expand("%{ver}"), "-", "~"); print(ver)}
-Release:        %autorelease
+Version:        21.3.0
+Release:        1
 License:        MIT
 URL:            http://www.mesa3d.org
 
-Source0:        https://mesa.freedesktop.org/archive/%{name}-%{ver}.tar.xz
+Source0:        %{name}-%{version}.tar.xz
 # src/gallium/auxiliary/postprocess/pp_mlaa* have an ... interestingly worded license.
 # Source1 contains email correspondence clarifying the license terms.
 # Fedora opts to ignore the optional part of clause 2 and treat that code as 2 clause BSD.
@@ -285,7 +284,7 @@ Requires:       vulkan-devel
 Headers for development with the Vulkan API.
 
 %prep
-%autosetup -n %{name}-%{ver} -p1
+%autosetup -n %{name}-%{version}/mesa -p1
 cp %{SOURCE1} docs/
 
 %build
