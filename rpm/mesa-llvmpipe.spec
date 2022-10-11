@@ -6,7 +6,7 @@
 Name:       mesa-llvmpipe
 
 Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    21.1.6
+Version:    21.3.9
 Release:    0
 License:    MIT
 URL:        http://www.mesa3d.org/
@@ -284,6 +284,7 @@ Mesa vulkan drivers.
 %{_libdir}/libvulkan_lvp.so
 %{_datadir}/vulkan/icd.d/lvp_icd.*.json
 %{_libdir}/libvulkan_radeon.so
+%{_datadir}/drirc.d/00-radv-defaults.conf
 %{_datadir}/vulkan/icd.d/radeon_icd.*.json
 %ifarch %{ix86} x86_64
 %{_libdir}/libvulkan_intel.so
