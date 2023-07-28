@@ -6,7 +6,7 @@
 Name:       mesa-llvmpipe
 
 Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    21.3.9
+Version:    23.1.6
 Release:    0
 License:    MIT
 URL:        http://www.mesa3d.org/
@@ -29,6 +29,7 @@ BuildRequires:  bison
 BuildRequires:  flex
 BuildRequires:  llvm-devel
 BuildRequires:  gettext
+BuildRequires:  glslang
 
 %description
 Mesa is an open-source implementation of the OpenGL specification  -
@@ -156,20 +157,30 @@ Mesa vulkan drivers.
 %autosetup -p1 -n %{name}-%{version}/mesa
 
 %build
-%meson -Ddri-drivers= \
-    -Dosmesa=false \
+%meson \
+    -Dandroid-libbacktrace=disabled \
+    -Dcpp_rtti=false \
     -Ddri3=disabled \
-    -Dllvm=enabled \
-    -Dshared-llvm=disabled \
+    -Degl=enabled \
     -Dgallium-drivers=swrast \
+    -Dgallium-va=disabled \
+    -Dgallium-vdpau=disabled \
+    -Dgallium-xa=disabled \
+    -Dgles1=enabled \
+    -Dgles2=enabled \
+    -Dglx=disabled \
+    -Dlibunwind=disabled \
+    -Dllvm=enabled \
+    -Dlmsensors=disabled \
+    -Dmicrosoft-clc=disabled \
+    -Dosmesa=false \
+    -Dplatforms=wayland \
+    -Dshared-llvm=disabled \
+    -Dvalgrind=disabled \
     -Dvulkan-drivers=%{?vulkan_drivers} \
     -Dvulkan-layers=device-select \
-    -Dmicrosoft-clc=disabled \
-    -Dplatforms=wayland \
-    -Dglx=disabled \
-    -Degl=enabled \
-    -Dgles1=enabled \
-    -Dgles2=enabled
+    -Dxlib-lease=disabled \
+    -Dzstd=disabled
 
 %meson_build
 
@@ -262,7 +273,7 @@ Mesa vulkan drivers.
 %dir %{_includedir}/EGL
 %{_includedir}/EGL/egl.h
 %{_includedir}/EGL/eglext.h
-%{_includedir}/EGL/eglextchromium.h
+%{_includedir}/EGL/eglext_angle.h
 %{_includedir}/EGL/eglplatform.h
 %{_includedir}/EGL/eglmesaext.h
 %dir %{_includedir}/KHR
