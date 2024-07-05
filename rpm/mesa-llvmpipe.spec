@@ -1,12 +1,13 @@
-%ifarch %{ix86} x86_64
-%global platform_vulkan ,intel
-%endif
+# Intel vulkan support needs libclc
+#ifarch %{ix86} x86_64
+#global platform_vulkan ,intel
+#endif
 %global vulkan_drivers swrast,amd%{?platform_vulkan}
 
 Name:       mesa-llvmpipe
 
 Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    23.1.9
+Version:    24.1.3
 Release:    0
 License:    MIT
 URL:        http://www.mesa3d.org/
@@ -163,12 +164,16 @@ Mesa vulkan drivers.
     -Ddri3=disabled \
     -Degl=enabled \
     -Dgallium-drivers=swrast \
+    -Dgallium-opencl=disabled \
     -Dgallium-va=disabled \
     -Dgallium-vdpau=disabled \
     -Dgallium-xa=disabled \
     -Dgles1=enabled \
     -Dgles2=enabled \
+    -Dglvnd=disabled \
     -Dglx=disabled \
+    -Dintel-clc=auto \
+    -Dintel-rt=disabled \
     -Dlibunwind=disabled \
     -Dllvm=enabled \
     -Dlmsensors=disabled \
@@ -215,38 +220,30 @@ Mesa vulkan drivers.
 %license docs/license.rst
 
 %files libgbm
-%defattr(-,root,root,-)
 %{_libdir}/libgbm.so.*
 
 %files libgbm-devel
-%defattr(-,root,root,-)
 /usr/include/gbm.h
 %{_libdir}/libgbm.so
 %{_libdir}/pkgconfig/gbm.pc
 
 %files libglapi
-%defattr(-,root,root,-)
 %{_libdir}/libglapi.so.0
 %{_libdir}/libglapi.so.0.*
 
 %files libGLESv1
-%defattr(-,root,root,-)
 %{_libdir}/libGLESv1_CM.so.*
 
 %files libGLESv2
-%defattr(-,root,root,-)
 %{_libdir}/libGLESv2.so.*
 
 %files libEGL
-%defattr(-,root,root,-)
 %{_libdir}/libEGL.so.*
 
 %files libglapi-devel
-%defattr(-,root,root,-)
 %{_libdir}/libglapi.so
 
 %files libGLESv1-devel
-%defattr(-,root,root,-)
 %{_libdir}/libGLESv1_CM.so
 %{_includedir}/GLES/egl.h
 %{_includedir}/GLES/gl.h
@@ -255,7 +252,6 @@ Mesa vulkan drivers.
 %{_libdir}/pkgconfig/glesv1_cm.pc
 
 %files libGLESv2-devel
-%defattr(-,root,root,-)
 %{_libdir}/libGLESv2.so
 %{_includedir}/GLES2/gl2.h
 %{_includedir}/GLES2/gl2ext.h
@@ -268,7 +264,6 @@ Mesa vulkan drivers.
 %{_libdir}/pkgconfig/glesv2.pc
 
 %files libEGL-devel
-%defattr(-,root,root,-)
 %{_libdir}/libEGL.so
 %dir %{_includedir}/EGL
 %{_includedir}/EGL/egl.h
@@ -281,7 +276,6 @@ Mesa vulkan drivers.
 %{_libdir}/pkgconfig/egl.pc
 
 %files libGL-devel
-%defattr(-,root,root,-)
 %{_includedir}/GL/gl.h
 %{_includedir}/GL/glcorearb.h
 %{_includedir}/GL/glext.h
@@ -289,7 +283,6 @@ Mesa vulkan drivers.
 %{_includedir}/GL/internal/dri_interface.h
 
 %files vulkan-drivers
-%defattr(-,root,root,-)
 %{_libdir}/libVkLayer_MESA_device_select.so
 %{_datadir}/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
 %{_libdir}/libvulkan_lvp.so
@@ -297,17 +290,15 @@ Mesa vulkan drivers.
 %{_libdir}/libvulkan_radeon.so
 %{_datadir}/drirc.d/00-radv-defaults.conf
 %{_datadir}/vulkan/icd.d/radeon_icd.*.json
-%ifarch %{ix86} x86_64
-%{_libdir}/libvulkan_intel.so
-%{_datadir}/vulkan/icd.d/intel_icd.*.json
-%endif
+#ifarch %{ix86} x86_64
+#{_libdir}/libvulkan_intel.so
+#{_datadir}/vulkan/icd.d/intel_icd.*.json
+#endif
 
 %files dri-drivers-devel
-%defattr(-,root,root,-)
 %{_libdir}/pkgconfig/dri.pc
 
 %files dri-swrast-driver
-%defattr(-,root,root,-)
 %dir %{_datadir}/drirc.d
 %{_datadir}/drirc.d/00-mesa-defaults.conf
 %{_libdir}/dri/swrast_dri.so
