@@ -39,13 +39,11 @@ BuildRequires:  flex
 BuildRequires:  gettext
 BuildRequires:  cmake
 BuildRequires:  clang-devel
-BuildRequires:  libva-devel
 BuildRequires:  libzstd-devel
 BuildRequires:  llvm-devel
 BuildRequires:  ccache
 BuildRequires:  kernel-headers
 
-Requires:       libva
 Requires:       libzstd
 
 %description
