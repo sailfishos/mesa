@@ -1,0 +1,23 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Eric Engestrom <eric@igalia.com>
+Date: Thu, 18 Jul 2024 09:07:51 +0200
+Subject: [PATCH] meson: fix filename printed when generating devenv files
+
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/29731>
+---
+ src/gallium/targets/dri/meson.build | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/gallium/targets/dri/meson.build b/src/gallium/targets/dri/meson.build
+index df79a49d80e87f6015ad372b0cf4499b17705dd3..0f11e4c8cb5e003a9b09eee166e010f24cc30a56 100644
+--- a/src/gallium/targets/dri/meson.build
++++ b/src/gallium/targets/dri/meson.build
+@@ -132,7 +132,7 @@ prog_ln = find_program('ln', required : false)
+
+     foreach d : gallium_dri_drivers
+       custom_target(
+-        'devenv_@0@'.format(d),
++        d,
+         input : libgallium_dri,
+         output : d,
+         command : [prog_ln, '-f', '@INPUT@', '@OUTPUT@'],

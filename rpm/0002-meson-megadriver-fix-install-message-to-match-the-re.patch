@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Eric Engestrom <eric@igalia.com>
+Date: Thu, 18 Jul 2024 08:58:48 +0200
+Subject: [PATCH] meson/megadriver: fix install message to match the rest of
+ meson
+
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/29731>
+---
+ bin/install_megadrivers.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/bin/install_megadrivers.py b/bin/install_megadrivers.py
+index 60ee4576c6045d08a6f395874c7596aeb8246c10..bd423255082296bf517b2284b94626e54c5a1def 100644
+--- a/bin/install_megadrivers.py
++++ b/bin/install_megadrivers.py
+@@ -54,7 +54,7 @@ def main():
+ 
+         if os.path.lexists(abs_driver):
+             os.unlink(abs_driver)
+-        print('installing {} to {}'.format(args.megadriver, abs_driver))
++        print(f'Installing hardlink to {args.megadriver} to {abs_driver}')
+         os.link(master, abs_driver)
+ 
+         try:

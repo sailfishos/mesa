@@ -1,0 +1,50 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Eric Engestrom <eric@igalia.com>
+Date: Wed, 29 May 2024 12:23:47 +0200
+Subject: [PATCH] meson/megadriver: stop removing the "master" .so file
+
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/29731>
+---
+ bin/install_megadrivers.py            | 3 +--
+ src/gallium/targets/va/meson.build    | 1 -
+ src/gallium/targets/vdpau/meson.build | 1 -
+ 3 files changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/bin/install_megadrivers.py b/bin/install_megadrivers.py
+index bd423255082296bf517b2284b94626e54c5a1def..886b4449c862633214153aae2d922b3251403d5a 100644
+--- a/bin/install_megadrivers.py
++++ b/bin/install_megadrivers.py
+@@ -70,8 +70,7 @@ def main():
+         finally:
+             os.chdir(ret)
+ 
+-    # Remove meson-created master .so and symlinks
+-    os.unlink(master)
++    # Remove meson-created .so symlinks
+     name, ext = os.path.splitext(master)
+     while ext != '.so':
+         if os.path.lexists(name):
+diff --git a/src/gallium/targets/va/meson.build b/src/gallium/targets/va/meson.build
+index ce41009766e469deae45a421462b2b7757e9495f..3ba4d74d6398a1076ac529a616016c335f5276de 100644
+--- a/src/gallium/targets/va/meson.build
++++ b/src/gallium/targets/va/meson.build
+@@ -82,7 +82,6 @@ else
+       idep_mesautil,
+     ],
+     link_depends : va_link_depends,
+-    # Will be deleted during installation, see install_megadrivers.py
+     install : true,
+     install_dir : va_drivers_path,
+     name_suffix : 'so',
+diff --git a/src/gallium/targets/vdpau/meson.build b/src/gallium/targets/vdpau/meson.build
+index ab40f09b4de58e09c92ef8f160c7b4665697da4d..0bee52caf48d644ed9d763f039f0b14ad2cc0032 100644
+--- a/src/gallium/targets/vdpau/meson.build
++++ b/src/gallium/targets/vdpau/meson.build
+@@ -45,7 +45,6 @@ libvdpau_gallium = shared_library(
+   ],
+   link_depends : vdpau_link_depends,
+   soversion : '@0@.@1@.0'.format(VDPAU_MAJOR, VDPAU_MINOR),
+-  # Will be deleted during installation, see install_megadrivers.py
+   install : true,
+   install_dir : vdpau_drivers_path,
+   name_suffix : 'so',

@@ -1,0 +1,61 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Eric Engestrom <eric@igalia.com>
+Date: Wed, 29 May 2024 12:23:47 +0200
+Subject: [PATCH] meson/megadriver: replace hardlinks with symlinks
+
+The wording in the script has always (3218056e0e) been about symlinks,
+and it feels like the use of `link()` instead of `symlink()` was
+a typo that became fact.
+
+These hardlinks make packaging harder (many distros have some variant of
+this patch locally) especially when it comes to debug packages where gdb
+expects the symbols file to have the same name as the lib the symbols
+come from, and I don't think they make anything better, so let's change
+to code to match the documentation :)
+
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/29731>
+---
+ bin/install_megadrivers.py           | 7 ++++---
+ src/gallium/targets/dri/meson.build | 3 +--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/bin/install_megadrivers.py b/bin/install_megadrivers.py
+index 886b4449c862633214153aae2d922b3251403d5a..4dc62391582b511f4f1a78bf2140865f3df4f708 100644
+--- a/bin/install_megadrivers.py
++++ b/bin/install_megadrivers.py
+@@ -42,7 +42,8 @@ def main():
+     else:
+         to = os.path.join(os.environ['MESON_INSTALL_DESTDIR_PREFIX'], args.libdir)
+ 
+-    master = os.path.join(to, os.path.basename(args.megadriver))
++    basename = os.path.basename(args.megadriver)
++    master = os.path.join(to, basename)
+ 
+     if not os.path.exists(to):
+         if os.path.lexists(to):
+@@ -54,8 +55,8 @@ def main():
+ 
+         if os.path.lexists(abs_driver):
+             os.unlink(abs_driver)
+-        print(f'Installing hardlink to {args.megadriver} to {abs_driver}')
+-        os.link(master, abs_driver)
++        print(f'Installing symlink pointing to {basename} to {abs_driver}')
++        os.symlink(basename, abs_driver)
+ 
+         try:
+             ret = os.getcwd()
+diff --git a/src/gallium/targets/dri/meson.build b/src/gallium/targets/dri/meson.build
+index 0f11e4c8cb5e003a9b09eee166e010f24cc30a56..bc2a5e3631c70513e91c1fd5d4359c2098e03659 100644
+--- a/src/gallium/targets/dri/meson.build
++++ b/src/gallium/targets/dri/meson.build
+@@ -133,9 +133,8 @@ if prog_ln.found()
+     foreach d : gallium_dri_drivers
+       custom_target(
+         d,
+-        input : libgallium_dri,
+         output : d,
+-        command : [prog_ln, '-f', '@INPUT@', '@OUTPUT@'],
++        command : [prog_ln, '-sf', 'libgallium_dri.so', '@OUTPUT@'],
+         build_by_default : true,
+       )
+     endforeach
