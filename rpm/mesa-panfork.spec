@@ -7,6 +7,10 @@ License:    MIT
 URL:        http://www.mesa3d.org/
 Source0:    %{name}-%{version}.tar.bz2
 Patch1:     disable-avx-support.diff
+Patch2:     0001-meson-fix-filename-printed-when-generating-devenv-fi.patch
+Patch3:     0002-meson-megadriver-fix-install-message-to-match-the-re.patch
+Patch4:     0003-meson-megadriver-stop-removing-the-master-.so-file.patch
+Patch5:     0004-meson-megadriver-replace-hardlinks-with-symlinks.patch
 
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(wayland-client)
