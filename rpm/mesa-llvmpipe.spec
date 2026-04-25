@@ -2,20 +2,19 @@
 #ifarch %{ix86} x86_64
 #global platform_vulkan ,intel
 #endif
-%global vulkan_drivers swrast,amd%{?platform_vulkan}
+%global vulkan_drivers swrast%{?platform_vulkan}
 
 Name:       mesa-llvmpipe
 
 Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    24.1.3
+Version:    26.0.8
 Release:    0
 License:    MIT
-URL:        http://www.mesa3d.org/
+URL:        https://github.com/sailfishos/mesa
 Source0:    %{name}-%{version}.tar.bz2
 Patch1:     disable-avx-support.diff
 
 BuildRequires:  pkgconfig(libdrm)
-BuildRequires:  libdrm-amdgpu
 BuildRequires:  pkgconfig(libelf)
 BuildRequires:  pkgconfig(wayland-client)
 BuildRequires:  pkgconfig(wayland-egl)
@@ -26,6 +25,7 @@ BuildRequires:  pkgconfig meson
 BuildRequires:  expat-devel >= 2.0
 BuildRequires:  python3-devel
 BuildRequires:  python3-mako
+BuildRequires:  python3-yaml
 BuildRequires:  bison
 BuildRequires:  flex
 BuildRequires:  llvm-devel
@@ -54,14 +54,6 @@ Provides:   libgbm-devel
 %description libgbm-devel
 Mesa libgbm development package.
 
-%package libglapi
-Summary:    Mesa shared gl api library
-Requires(post): /sbin/ldconfig
-Requires(postun): /sbin/ldconfig
-
-%description libglapi
-Mesa shared gl api library.
-
 %package libGLESv1
 Summary:    Mesa libGLESv1 runtime libraries
 Requires(post): /sbin/ldconfig
@@ -88,14 +80,6 @@ Provides:   libEGL = %{version}-%{release}
 
 %description libEGL
 Mesa libEGL runtime library.
-
-%package libglapi-devel
-Summary:    Mesa libglapi development package
-Requires:   mesa-llvmpipe-libglapi = %{version}-%{release}
-Provides:   libglapi-devel
-
-%description libglapi-devel
-Mesa libglapi development package.
 
 %package libGLESv1-devel
 Summary:    Mesa libGLESv1 development package
@@ -161,26 +145,23 @@ Mesa vulkan drivers.
 %meson \
     -Dandroid-libbacktrace=disabled \
     -Dcpp_rtti=false \
-    -Ddri3=disabled \
+    -Ddisplay-info=disabled \
     -Degl=enabled \
-    -Dgallium-drivers=swrast \
-    -Dgallium-opencl=disabled \
+    -Dgallium-drivers=llvmpipe,softpipe \
+    -Dgallium-mediafoundation=disabled \
     -Dgallium-va=disabled \
-    -Dgallium-vdpau=disabled \
-    -Dgallium-xa=disabled \
     -Dgles1=enabled \
     -Dgles2=enabled \
     -Dglvnd=disabled \
     -Dglx=disabled \
-    -Dintel-clc=auto \
     -Dintel-rt=disabled \
     -Dlibunwind=disabled \
     -Dllvm=enabled \
     -Dlmsensors=disabled \
     -Dmicrosoft-clc=disabled \
-    -Dosmesa=false \
     -Dplatforms=wayland \
     -Dshared-llvm=disabled \
+    -Dspirv-tools=disabled \
     -Dvalgrind=disabled \
     -Dvulkan-drivers=%{?vulkan_drivers} \
     -Dvulkan-layers=device-select \
@@ -195,10 +176,6 @@ Mesa vulkan drivers.
 %post libgbm -p /sbin/ldconfig
 
 %postun libgbm -p /sbin/ldconfig
-
-%post libglapi -p /sbin/ldconfig
-
-%postun libglapi -p /sbin/ldconfig
 
 %post libGLESv1 -p /sbin/ldconfig
 
@@ -223,13 +200,11 @@ Mesa vulkan drivers.
 %{_libdir}/libgbm.so.*
 
 %files libgbm-devel
-/usr/include/gbm.h
+%{_includedir}/gbm.h
+%{_includedir}/gbm_backend_abi.h
 %{_libdir}/libgbm.so
+%{_libdir}/gbm/dri_gbm.so
 %{_libdir}/pkgconfig/gbm.pc
-
-%files libglapi
-%{_libdir}/libglapi.so.0
-%{_libdir}/libglapi.so.0.*
 
 %files libGLESv1
 %{_libdir}/libGLESv1_CM.so.*
@@ -239,9 +214,6 @@ Mesa vulkan drivers.
 
 %files libEGL
 %{_libdir}/libEGL.so.*
-
-%files libglapi-devel
-%{_libdir}/libglapi.so
 
 %files libGLESv1-devel
 %{_libdir}/libGLESv1_CM.so
@@ -287,9 +259,6 @@ Mesa vulkan drivers.
 %{_datadir}/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
 %{_libdir}/libvulkan_lvp.so
 %{_datadir}/vulkan/icd.d/lvp_icd.*.json
-%{_libdir}/libvulkan_radeon.so
-%{_datadir}/drirc.d/00-radv-defaults.conf
-%{_datadir}/vulkan/icd.d/radeon_icd.*.json
 #ifarch %{ix86} x86_64
 #{_libdir}/libvulkan_intel.so
 #{_datadir}/vulkan/icd.d/intel_icd.*.json
@@ -301,5 +270,4 @@ Mesa vulkan drivers.
 %files dri-swrast-driver
 %dir %{_datadir}/drirc.d
 %{_datadir}/drirc.d/00-mesa-defaults.conf
-%{_libdir}/dri/swrast_dri.so
-%{_libdir}/dri/kms_swrast_dri.so
+%{_libdir}/libgallium-*.so
