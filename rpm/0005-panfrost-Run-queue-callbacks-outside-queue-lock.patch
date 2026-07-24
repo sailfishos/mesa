@@ -1,0 +1,137 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Andrew Branson <andrew.branson@jolla.com>
+Date: Fri, 24 Jul 2026 20:10:36 +0200
+Subject: panfrost: Run queue callbacks outside queue lock
+
+Queue completion callbacks can acquire bo_map_lock. Buffer destruction
+also registers callbacks while holding bo_map_lock, which takes queue_lock.
+Calling a completion callback under queue_lock therefore deadlocks when
+the two paths run concurrently.
+
+Detach completed callbacks while queue_lock protects the queue state, then
+run them after releasing it. Do the same when terminating a command stream.
+---
+ src/panfrost/base/pan_vX_base.c | 58 ++++++++++++++++++++++++---------
+ 1 file changed, 42 insertions(+), 16 deletions(-)
+
+diff --git a/src/panfrost/base/pan_vX_base.c b/src/panfrost/base/pan_vX_base.c
+index 99bd356c536..ace955db93b 100644
+--- a/src/panfrost/base/pan_vX_base.c
++++ b/src/panfrost/base/pan_vX_base.c
+@@ -1036,16 +1036,14 @@ kbase_read_event(kbase k)
+         return false;
+ }
+ 
+-static void
+-kbase_update_queue_callbacks(kbase k,
+-                             struct kbase_event_slot *slot,
+-                             uint64_t seqnum)
++static struct kbase_sync_link **
++kbase_collect_queue_callbacks(kbase k,
++                              struct kbase_event_slot *slot,
++                              uint64_t seqnum,
++                              struct kbase_sync_link **callback_back)
+ {
+-        struct kbase_sync_link **list = &slot->syncobjs;
+-        struct kbase_sync_link **back = slot->back;
+-
+-        while (*list) {
+-                struct kbase_sync_link *link = *list;
++        while (slot->syncobjs) {
++                struct kbase_sync_link *link = slot->syncobjs;
+ 
+                 LOG("seq %"PRIu64" %"PRIu64"\n", seqnum, link->seqnum);
+ 
+@@ -1054,11 +1052,27 @@ kbase_update_queue_callbacks(kbase k,
+                 if (seqnum <= link->seqnum)
+                         break;
+ 
++                slot->syncobjs = link->next;
++                if (!slot->syncobjs)
++                        slot->back = &slot->syncobjs;
++
++                link->next = NULL;
++                *callback_back = link;
++                callback_back = &link->next;
++        }
++
++        return callback_back;
++}
++
++static void
++kbase_run_queue_callbacks(kbase k, struct kbase_sync_link *callbacks)
++{
++        while (callbacks) {
++                struct kbase_sync_link *link = callbacks;
++                callbacks = link->next;
++
+                 LOG("done, calling %p(%p)\n", link->callback, link->data);
+                 link->callback(link->data);
+-                *list = link->next;
+-                if (&link->next == back)
+-                        slot->back = list;
+                 free(link);
+         }
+ }
+@@ -1075,6 +1089,8 @@ kbase_handle_events(kbase k)
+         bool ret = kbase_read_event(k);
+ 
+         uint64_t *event_mem = k->event_mem.cpu;
++        struct kbase_sync_link *callbacks = NULL;
++        struct kbase_sync_link **callback_back = &callbacks;
+ 
+         pthread_mutex_lock(&k->queue_lock);
+ 
+@@ -1090,8 +1106,8 @@ kbase_handle_events(kbase k)
+                                         "from %"PRIu64" to %"PRIu64"!\n",
+                                         i, cmp, seqnum);
+                 } else /*if (seqnum > cmp)*/ {
+-                        kbase_update_queue_callbacks(k, &k->event_slots[i],
+-                                                     seqnum);
++                        callback_back = kbase_collect_queue_callbacks(
++                                k, &k->event_slots[i], seqnum, callback_back);
+                 }
+ 
+                 /* TODO: Atomic operations? */
+@@ -1100,6 +1116,11 @@ kbase_handle_events(kbase k)
+ 
+         pthread_mutex_unlock(&k->queue_lock);
+ 
++        /* Callbacks can acquire other driver locks. Run them only after the
++         * queue state has been updated and queue_lock has been released.
++         */
++        kbase_run_queue_callbacks(k, callbacks);
++
+         return ret;
+ }
+ 
+@@ -1375,6 +1396,8 @@ kbase_cs_bind(kbase k, struct kbase_context *ctx,
+ static void
+ kbase_cs_term(kbase k, struct kbase_cs *cs)
+ {
++        struct kbase_sync_link *callbacks = NULL;
++
+         if (cs->user_io) {
+                 LOG("unmapping %p user_io %p\n", cs, cs->user_io);
+                 munmap(cs->user_io,
+@@ -1388,8 +1411,9 @@ kbase_cs_term(kbase k, struct kbase_cs *cs)
+         kbase_ioctl(k->fd, KBASE_IOCTL_CS_QUEUE_TERMINATE, &term);
+ 
+         pthread_mutex_lock(&k->queue_lock);
+-        kbase_update_queue_callbacks(k, &k->event_slots[cs->event_mem_offset],
+-                                     ~0ULL);
++        kbase_collect_queue_callbacks(k,
++                                      &k->event_slots[cs->event_mem_offset],
++                                      ~0ULL, &callbacks);
+ 
+         k->event_slots[cs->event_mem_offset].last = ~0ULL;
+ 
+@@ -1400,6 +1424,8 @@ kbase_cs_term(kbase k, struct kbase_cs *cs)
+ 
+         k->event_slots[cs->event_mem_offset].last = 0;
+         pthread_mutex_unlock(&k->queue_lock);
++
++        kbase_run_queue_callbacks(k, callbacks);
+ }
+ 
+ static void
