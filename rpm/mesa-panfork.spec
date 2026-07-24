@@ -12,6 +12,10 @@ Patch3:     0002-meson-megadriver-fix-install-message-to-match-the-re.patch
 Patch4:     0003-meson-megadriver-stop-removing-the-master-.so-file.patch
 Patch5:     0004-meson-megadriver-replace-hardlinks-with-symlinks.patch
 Patch6:     0005-panfrost-Run-queue-callbacks-outside-queue-lock.patch
+Patch7:     0006-llvmpipe-only-include-old-Transform-includes-when-ne.patch
+Patch8:     0007-fix-FTBFS-gallivm-fix-LLVM-include-of-Triple.h-moved.patch
+Patch9:     0008-fix-gallivm-fix-LLVM-include-of-Host.h-moved-to-Targ.patch
+Patch10:    0009-fix-gallivm-limit-usage-of-LLVMContextSetOpaquePoint.patch
 
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(wayland-client)
