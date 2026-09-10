@@ -7,12 +7,15 @@
 Name:       mesa-llvmpipe
 
 Summary:    Mesa graphics libraries built for LLVMpipe
-Version:    26.0.8
+Version:    25.1.9
 Release:    0
 License:    MIT
 URL:        https://github.com/sailfishos/mesa
 Source0:    %{name}-%{version}.tar.bz2
-Patch1:     disable-avx-support.diff
+Patch0:     disable-avx-support.diff
+Patch1:     0001-c11-threads-fix-build-on-c23.patch
+Patch2:     0002-util-u_printf-Fix-const-correctness-in-util_printf_n.patch
+Patch3:     0003-util-blob-Fix-const-correctness-warning-in-blob_read.patch
 
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(libelf)
@@ -145,23 +148,25 @@ Mesa vulkan drivers.
 %meson \
     -Dandroid-libbacktrace=disabled \
     -Dcpp_rtti=false \
-    -Ddisplay-info=disabled \
     -Degl=enabled \
     -Dgallium-drivers=llvmpipe,softpipe \
-    -Dgallium-mediafoundation=disabled \
+    -Dgallium-opencl=disabled \
     -Dgallium-va=disabled \
+    -Dgallium-vdpau=disabled \
+    -Dgallium-xa=disabled \
     -Dgles1=enabled \
     -Dgles2=enabled \
     -Dglvnd=disabled \
     -Dglx=disabled \
+    -Dintel-clc=auto \
     -Dintel-rt=disabled \
     -Dlibunwind=disabled \
     -Dllvm=enabled \
     -Dlmsensors=disabled \
     -Dmicrosoft-clc=disabled \
+    -Dosmesa=false \
     -Dplatforms=wayland \
     -Dshared-llvm=disabled \
-    -Dspirv-tools=disabled \
     -Dvalgrind=disabled \
     -Dvulkan-drivers=%{?vulkan_drivers} \
     -Dvulkan-layers=device-select \

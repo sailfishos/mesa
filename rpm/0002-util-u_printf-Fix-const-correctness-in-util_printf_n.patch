@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Vinson Lee <vlee@freedesktop.org>
+Date: Sun, 21 Dec 2025 21:48:57 -0800
+Subject: [PATCH] util/u_printf: Fix const correctness in
+ util_printf_next_spec_pos
+
+Fix compiler error:
+
+../src/util/u_printf.c:75:13: error: initializing 'char *' with an
+expression of type 'const char *' discards qualifiers
+[-Werror,-Wincompatible-pointer-types-discards-qualifiers]
+   75 |       char *spec_pos = strpbrk(str_found, "cdieEfFgGaAosuxXp%");
+      |             ^          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+glibc now provides C23-style type-generic string functions. strpbrk
+returns const char * when passed a const char * argument. Update
+spec_pos declaration to match.
+
+Fixes: 6d263ff5a3ec ("util: Convert util/u_printf.cpp to util/u_printf.c")
+Signed-off-by: Vinson Lee <vlee@freedesktop.org>
+Reviewed-by: Yonggang Luo <luoyonggang@gmail.com>
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/39059>
+---
+ src/util/u_printf.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/util/u_printf.c b/src/util/u_printf.c
+index f3ae6ffd3bb5af72de9d38f044b9373e04a3c957..819428c968ff13fe55d380a4fbc42fcc0bb1b959 100644
+--- a/src/util/u_printf.c
++++ b/src/util/u_printf.c
+@@ -70,7 +70,7 @@ size_t util_printf_next_spec_pos(const char *str, size_t pos)
+          continue;
+       }
+ 
+-      char *spec_pos = strpbrk(str_found, "cdieEfFgGaAosuxXp%");
++      const char *spec_pos = strpbrk(str_found, "cdieEfFgGaAosuxXp%");
+       if (spec_pos == NULL) {
+          return -1;
+       } else if (*spec_pos == '%') {
