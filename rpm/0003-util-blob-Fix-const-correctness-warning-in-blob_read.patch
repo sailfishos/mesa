@@ -1,0 +1,40 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Vinson Lee <vlee@freedesktop.org>
+Date: Fri, 19 Dec 2025 22:10:18 -0800
+Subject: [PATCH] util/blob: Fix const correctness warning in blob_read_string
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Fix compiler error:
+
+  ../src/util/blob.c:344:8: error: assigning to 'uint8_t *' from
+  'const void *' discards qualifiers
+  [-Werror,-Wincompatible-pointer-types-discards-qualifiers]
+
+glibc now provides C23-style type-generic string functions. memchr
+returns const void * when passed a const void * argument. Update nul
+declaration to const since it's only used to find the null terminator
+position and calculate a size.
+
+Fixes: 1c9877327ea ("glsl: Add blob.c---a simple interface for serializing data")
+Signed-off-by: Vinson Lee <vlee@freedesktop.org>
+Reviewed-by: Tapani Pälli <tapani.palli@intel.com>
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/39048>
+---
+ src/util/blob.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/util/blob.c b/src/util/blob.c
+index 9fb30e30e9689c63bf21a0ab6bd7f38da18dee20..fb583c94abfa00027364ad40ea95cfd78c45cf72 100644
+--- a/src/util/blob.c
++++ b/src/util/blob.c
+@@ -330,7 +330,7 @@ blob_read_string(struct blob_reader *blob)
+ {
+    int size;
+    char *ret;
+-   uint8_t *nul;
++   const uint8_t *nul;
+ 
+    /* If we're already at the end, then this is an overrun. */
+    if (blob->current >= blob->end) {
