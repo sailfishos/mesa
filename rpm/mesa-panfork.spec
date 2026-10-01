@@ -16,6 +16,7 @@ Patch7:     0006-llvmpipe-only-include-old-Transform-includes-when-ne.patch
 Patch8:     0007-fix-FTBFS-gallivm-fix-LLVM-include-of-Triple.h-moved.patch
 Patch9:     0008-fix-gallivm-fix-LLVM-include-of-Host.h-moved-to-Targ.patch
 Patch10:    0009-fix-gallivm-limit-usage-of-LLVMContextSetOpaquePoint.patch
+Patch11:    0010-amd-llvm-fix-build-with-LLVM-18.patch
 
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(wayland-client)
